@@ -3,8 +3,8 @@ import { Error } from "@components/Error";
 import { Loading } from "@components/Loading";
 import { NovelMarkdown } from "@components/NovelMarkdown";
 import { Flex, ScrollArea } from "@radix-ui/themes";
+import { useAtomValue } from "jotai";
 import { useEffect, useRef, useState } from "react";
-import { useRecoilValue } from "recoil";
 import styled from "styled-components";
 
 const Container = styled(ScrollArea)`
@@ -47,7 +47,7 @@ export const NovelReader = ({ id }: NovelProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
   const novelRef = useRef<HTMLDivElement>(null);
-  const admin = useRecoilValue(adminAtom);
+  const admin = useAtomValue(adminAtom);
   useEffect(() => {
     const fetchNovel = async (novelId: number | string) => {
       try {

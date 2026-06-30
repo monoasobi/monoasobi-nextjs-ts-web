@@ -4,9 +4,9 @@ import { sidebarAtom } from "@atoms/sidebar.atom";
 import { musics } from "@lib/music";
 import { novels } from "@lib/novel";
 import { Flex, ScrollArea, Text, Badge } from "@radix-ui/themes";
+import { useAtomValue, useSetAtom } from "jotai";
 import { MouseEventHandler, useEffect, useRef } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
-import { useRecoilValue, useSetRecoilState } from "recoil";
 import styled from "styled-components";
 
 const SIDEBAR_WIDTH = "360px";
@@ -60,8 +60,8 @@ const Content = styled(ScrollArea)`
 `;
 
 export const Sidebar = () => {
-  const isSidebar = useRecoilValue(sidebarAtom);
-  const setIsSidebar = useSetRecoilState(sidebarAtom);
+  const isSidebar = useAtomValue(sidebarAtom);
+  const setIsSidebar = useSetAtom(sidebarAtom);
   const param = useParams();
   const location = useLocation();
 
@@ -209,8 +209,8 @@ const SecondaryText = styled(Text)<{ $tone: ItemTone }>`
 
 const Item = ({ item, isActive }: ItemProps) => {
   const { id, korTitle, title, enTitle, specialPath } = item;
-  const setIsSidebar = useSetRecoilState(sidebarAtom);
-  const isAdmin = useRecoilValue(adminAtom);
+  const setIsSidebar = useSetAtom(sidebarAtom);
+  const isAdmin = useAtomValue(adminAtom);
 
   const novel = novels.find((novel) => novel.musicId === id);
   if (!novel) return null;

@@ -1,8 +1,3 @@
-import { localStorageEffect } from "@utils/storageEffect";
-import { atom } from "recoil";
+import { atomWithStorage } from "jotai/utils";
 
-export const adminAtom = atom<boolean>({
-  key: "admin",
-  default: false,
-  effects: [localStorageEffect("admin")],
-});
+export const adminAtom = atomWithStorage("admin", false);

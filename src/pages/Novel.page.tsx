@@ -5,9 +5,9 @@ import { PurchaseLink } from "@components/PurchaseLink";
 import { Translate } from "@components/Translate";
 import { musics } from "@lib/music";
 import { novels } from "@lib/novel";
+import { useAtomValue } from "jotai";
 import { lazy, Suspense, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useRecoilValue } from "recoil";
 
 const Reader = lazy(() =>
   import("@components/NovelReader").then(({ NovelReader }) => ({
@@ -24,7 +24,7 @@ export const Novel = () => {
     if (!music || !novel) navigate("/404");
   }, [music, navigate, novel]);
 
-  const isAdmin = useRecoilValue(adminAtom);
+  const isAdmin = useAtomValue(adminAtom);
   if (!music || !novel) return;
 
   const translator =

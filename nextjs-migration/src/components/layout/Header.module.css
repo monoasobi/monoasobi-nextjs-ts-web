@@ -1,0 +1,25 @@
+.header {
+  display: flex;
+  width: 100%;
+  height: 56px;
+  flex: 0 0 56px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--gray-a4);
+  background: var(--gray-1);
+  padding: 10px 16px;
+}
+
+.logoButton {
+  min-width: 0;
+}
+
+.logo {
+  display: block;
+  width: 120px;
+  height: auto;
+}
+
+.batangText {
+  font-family: "KoPub Batang", serif;
+}

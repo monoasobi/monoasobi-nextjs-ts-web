@@ -8,9 +8,9 @@ import {
   Text,
   TextField,
 } from "@radix-ui/themes";
+import { useSetAtom } from "jotai";
 import { KeyboardEventHandler, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSetRecoilState } from "recoil";
 import styled from "styled-components";
 
 const Container = styled(ScrollArea)`
@@ -71,7 +71,7 @@ const LoadingContainer = styled(Box)`
 export const Admin = () => {
   const [pw, setPw] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const setIsAdmin = useSetRecoilState(adminAtom);
+  const setIsAdmin = useSetAtom(adminAtom);
   const navigate = useNavigate();
 
   const adminHandler = async () => {

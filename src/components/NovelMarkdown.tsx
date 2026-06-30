@@ -7,9 +7,9 @@ import {
 } from "@components/NovelMarkdown.styles";
 import { fontAtom } from "@atoms/font.atom";
 import { Heading, Text } from "@radix-ui/themes";
+import { useAtomValue } from "jotai";
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
-import { useRecoilValue } from "recoil";
 
 interface NovelMarkdownProps {
   children: string;
@@ -17,7 +17,7 @@ interface NovelMarkdownProps {
 }
 
 export const NovelMarkdown = ({ children, className }: NovelMarkdownProps) => {
-  const font = useRecoilValue(fontAtom);
+  const font = useAtomValue(fontAtom);
 
   return (
     <ReactMarkdown
