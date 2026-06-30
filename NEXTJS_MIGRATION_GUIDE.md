@@ -426,10 +426,15 @@ lyric_tracks
 - 초기 seed 전략이 정해졌다.
 
 판단 지점:
-- `lyrics`를 DB JSON으로 옮길지, R2 JSON/Markdown으로 유지하고 DB에는 key만 둘지 결정한다.
+- `lyrics`는 `lyric_tracks.lyric_json`에 DB JSON으로 저장한다. 소설 Markdown과 만화 이미지는 DB에 내용 대신 R2 `contentKey` 또는 `imagePrefix`만 저장한다.
 
 ## 7단계: 기존 lib 데이터 마이그레이션
 `src/lib/*.ts`와 `src/lib/lyrics/*.json`의 데이터를 DB seed로 이전한다.
+
+진행 결정:
+- DB 스키마와 migration 기반은 6단계에서 유지하되, 실제 Turso 서비스 생성, migration 적용, seed, 프론트 데이터 소스 교체는 별도 DB 전환 작업으로 미룬다.
+- 그 전까지 프론트 이식은 기존 정적 `src/lib` 데이터와 5단계에서 만든 R2 콘텐츠 API를 사용해 진행한다.
+- DB 전환을 재개할 때 이 7단계부터 다시 시작한다.
 
 작업 항목:
 - `music.ts` -> `musics`
@@ -444,6 +449,10 @@ lyric_tracks
 
 ## 8단계: 읽기 API 구축
 프론트와 다른 Codex 프로젝트가 사용할 읽기 API를 만든다.
+
+진행 결정:
+- 7단계 DB seed가 완료된 뒤 진행한다.
+- 프론트 화면 이식 중에는 이 API를 만들지 않고 기존 정적 데이터와 콘텐츠 API를 사용한다.
 
 Agent API:
 ```txt
@@ -471,6 +480,10 @@ Authorization: Bearer <AGENT_API_TOKEN>
 
 ## 9단계: 프론트 데이터 소스 교체
 기존 `src/lib` import를 API 또는 서버 DB 조회로 교체한다.
+
+진행 결정:
+- 7~8단계가 완료된 뒤 진행한다.
+- 그 전까지 Next.js 화면은 기존 `src/lib` 정적 데이터 import를 허용한다.
 
 작업 순서:
 1. 사이드바 음악 목록

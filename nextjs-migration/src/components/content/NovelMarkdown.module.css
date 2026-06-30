@@ -1,0 +1,60 @@
+.paragraph {
+  margin-bottom: 1rem;
+  transform: rotate(-0.03deg);
+}
+
+.paragraph[data-font="gothic"],
+.li[data-font="gothic"] {
+  font-family: "Pretendard JP Variable", sans-serif;
+  font-weight: 500;
+}
+
+.paragraph[data-font="batang"],
+.li[data-font="batang"] {
+  font-family: "KoPub Batang", serif;
+  font-weight: 400;
+}
+
+.paragraph:has(br) {
+  margin-left: 1rem;
+  line-height: 1.75rem;
+}
+
+.paragraph:not(:has(br)) {
+  text-indent: 1rem;
+}
+
+.quote {
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  background-color: var(--accent-a3);
+  padding: 1.5rem;
+}
+
+.quote > p {
+  margin-bottom: 0.5rem;
+  margin-left: 0;
+  font-family: "Pretendard JP Variable", sans-serif;
+  text-indent: 0;
+  transform: rotate(-0.03deg);
+}
+
+.quote > p:last-child {
+  margin-bottom: 0;
+}
+
+.hr {
+  width: 50%;
+  min-width: 80px;
+  margin: 3rem auto;
+}
+
+.ul {
+  margin-bottom: 1rem;
+}
+
+.li {
+  margin-left: 1rem;
+  margin-bottom: 0.25rem;
+  transform: rotate(-0.03deg);
+}

@@ -1,0 +1,31 @@
+.container {
+  width: 100%;
+  max-width: 1024px;
+  height: calc(100dvh - 72px);
+}
+
+.container :global(.rt-ScrollAreaViewport) {
+  padding: 64px 24px 24px;
+}
+
+.pageFrame {
+  width: 100%;
+  min-height: 100%;
+}
+
+.card {
+  overflow: visible;
+  padding: 24px;
+}
+
+.bookImg {
+  width: 50%;
+  max-width: 280px;
+  box-shadow: 2px 2px 12px 2px var(--black-a4);
+}
+
+@media (max-width: 480px) {
+  .container :global(.rt-ScrollAreaViewport) {
+    padding: 64px 16px 24px;
+  }
+}

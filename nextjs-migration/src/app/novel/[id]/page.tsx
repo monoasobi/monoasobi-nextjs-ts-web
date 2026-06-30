@@ -1,4 +1,7 @@
-import { RouteShell } from "@/app/_components/RouteShell";
+import { musics } from "@lib/music";
+import { novels } from "@lib/novel";
+import { notFound } from "next/navigation";
+import { NovelPageClient } from "./_components/NovelPageClient";
 
 interface NovelPageProps {
   params: Promise<{ id: string }>;
@@ -6,13 +9,11 @@ interface NovelPageProps {
 
 export default async function NovelPage({ params }: NovelPageProps) {
   const { id } = await params;
+  const novelId = Number(id);
+  const novel = novels.find((novel) => novel.id === novelId);
+  const music = musics.find((music) => music.id === novel?.musicId);
 
-  return (
-    <RouteShell
-      title="소설 상세"
-      description="기존 /novel/:id 경로를 Next.js 동적 라우트로 옮길 자리입니다."
-      source="src/pages/Novel.page.tsx"
-      params={{ id }}
-    />
-  );
+  if (!Number.isInteger(novelId) || !novel || !music) notFound();
+
+  return <NovelPageClient id={novelId} />;
 }
