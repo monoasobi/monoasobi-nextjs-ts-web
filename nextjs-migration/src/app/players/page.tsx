@@ -1,11 +1,18 @@
-import { RouteShell } from "@/app/_components/RouteShell";
+import { ContentsContainer } from "@components/content/ContentsContainer";
+import { Players } from "@components/custom/Players";
+import { musics } from "@lib/music";
+import { novels } from "@lib/novel";
+import { Suspense } from "react";
 
 export default function PlayersPage() {
+  const music = musics[29];
+  const novel = novels.find((item) => item.musicId === music.id);
+
   return (
-    <RouteShell
-      title="Players"
-      description="기존 /players 특수 페이지를 옮길 자리입니다."
-      source="src/pages/Players.page.tsx"
-    />
+    <Suspense>
+      <ContentsContainer music={music} content={novel}>
+        <Players />
+      </ContentsContainer>
+    </Suspense>
   );
 }

@@ -1,0 +1,138 @@
+.container {
+  width: 100%;
+  height: calc(100dvh - 56px);
+  background-color: var(--gray-1);
+}
+
+.container :global(.rt-ScrollAreaViewport) {
+  line-height: 160%;
+}
+
+.page {
+  width: 100%;
+}
+
+.hero {
+  position: relative;
+  display: flex;
+  min-height: min(680px, calc(100dvh - 96px));
+  align-items: end;
+  background-image:
+    linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.76) 0%,
+      rgba(0, 0, 0, 0.48) 44%,
+      rgba(0, 0, 0, 0.16) 100%
+    ),
+    url("/images/assets/yoasobi.jpg");
+  background-position: center;
+  background-size: cover;
+  color: white;
+}
+
+.heroInner {
+  width: 100%;
+  max-width: 1120px;
+  padding: 72px 32px 56px;
+  margin: 0 auto;
+}
+
+.heroCopy {
+  max-width: 560px;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.section {
+  width: 100%;
+  padding: 64px 32px;
+}
+
+.sectionInner {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.eyebrow {
+  color: var(--red-10);
+  font-weight: 700;
+}
+
+.logo {
+  width: 60%;
+  align-self: center;
+  margin: 32px 0;
+}
+
+.featureGrid {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.featureCard,
+.routeCard {
+  padding: 20px;
+  overflow: visible;
+}
+
+.iconShell {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background-color: var(--red-a3);
+  color: var(--red-10);
+}
+
+.routeIconContain {
+  display: flex;
+  justify-content: center;
+  padding: 4px;
+}
+
+.routeStep {
+  padding: 14px 0;
+}
+
+.routeStep + .routeStep {
+  border-top: 1px solid var(--gray-a4);
+}
+
+.noticeBand {
+  border-block: 1px solid var(--gray-a4);
+  background-color: var(--gray-2);
+}
+
+@media (max-width: 1024px) {
+  .hero {
+    min-height: 480px;
+  }
+}
+
+@media (max-width: 960px) {
+  .featureGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .featureGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    min-height: 360px;
+  }
+
+  .heroInner {
+    padding: 56px 20px 40px;
+  }
+
+  .section {
+    padding: 48px 20px;
+  }
+}

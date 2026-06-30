@@ -1,11 +1,18 @@
-import { RouteShell } from "@/app/_components/RouteShell";
+import { HeartBeat } from "@components/custom/HeartBeat";
+import { ContentsContainer } from "@components/content/ContentsContainer";
+import { musics } from "@lib/music";
+import { novels } from "@lib/novel";
+import { Suspense } from "react";
 
 export default function HeartBeatPage() {
+  const music = musics[24];
+  const novel = novels.find((item) => item.musicId === music.id);
+
   return (
-    <RouteShell
-      title="Heart Beat"
-      description="기존 /heartbeat 특수 페이지를 옮길 자리입니다."
-      source="src/pages/HeartBeat.page.tsx"
-    />
+    <Suspense>
+      <ContentsContainer music={music} content={novel}>
+        <HeartBeat />
+      </ContentsContainer>
+    </Suspense>
   );
 }

@@ -1,11 +1,16 @@
-import { RouteShell } from "@/app/_components/RouteShell";
+import { ContentsContainer } from "@components/content/ContentsContainer";
+import { OnTheStage } from "@components/custom/OnTheStage";
+import { musics } from "@lib/music";
+import { Suspense } from "react";
 
 export default function OnTheStagePage() {
+  const music = musics[26];
+
   return (
-    <RouteShell
-      title="On The Stage"
-      description="기존 /onthestage 특수 페이지를 옮길 자리입니다."
-      source="src/pages/OnTheStage.page.tsx"
-    />
+    <Suspense>
+      <ContentsContainer music={music}>
+        <OnTheStage />
+      </ContentsContainer>
+    </Suspense>
   );
 }
