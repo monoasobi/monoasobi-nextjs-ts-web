@@ -52,11 +52,6 @@
   background-color: var(--red-10);
 }
 
-.lyricsPlaceholder {
-  margin-top: 96px;
-  padding: 24px;
-}
-
 @media (max-width: 480px) {
   .header {
     padding: 12px 44px;

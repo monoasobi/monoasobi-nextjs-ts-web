@@ -1,6 +1,7 @@
 "use client";
 
 import type { Music } from "@appTypes/music";
+import { YouTubeLyricsPlayer } from "@components/common/YouTubeLyricsPlayer";
 import { MusicalNoteIcon } from "@heroicons/react/16/solid";
 import {
   BookOpenIcon,
@@ -105,15 +106,7 @@ export const ContentsContainer = ({
             </Flex>
           </Popover.Content>
         </Card>
-        {isLyrics ? (
-          <Card className={styles.lyricsPlaceholder}>
-            <Text size="2" color="gray">
-              가사 플레이어는 다음 프론트 이식 단계에서 연결합니다.
-            </Text>
-          </Card>
-        ) : (
-          children
-        )}
+        {isLyrics ? <YouTubeLyricsPlayer key={music.id} music={music} /> : children}
         <IconButton
           className={styles.floatingToggle}
           size="3"
