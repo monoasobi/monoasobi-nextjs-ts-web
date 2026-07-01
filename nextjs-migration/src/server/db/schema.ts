@@ -7,7 +7,7 @@ export const musics = sqliteTable("musics", {
   enTitle: text("en_title").notNull(),
   title: text("title").notNull(),
   specialPath: text("special_path"),
-  youtubeId: text("youtube_id").notNull(),
+  youtubeId: text("youtube_id"),
   createdAt: text("created_at")
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),

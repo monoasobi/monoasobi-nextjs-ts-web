@@ -29,7 +29,8 @@
     "react-markdown": "^10.1.0",
     "react-player": "^3.4.0",
     "remark-breaks": "^4.0.0",
-    "styled-components": "^6.4.3"
+    "styled-components": "^6.4.3",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^20",

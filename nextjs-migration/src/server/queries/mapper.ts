@@ -13,7 +13,7 @@ export const toMusic = (music: MusicRow): Music => ({
   enTitle: music.enTitle,
   title: music.title,
   specialPath: music.specialPath ?? undefined,
-  youtubeId: music.youtubeId,
+  youtubeId: music.youtubeId ?? undefined,
 });
 
 export const toNovel = (novel: NovelRow): Novel => {

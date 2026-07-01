@@ -18,8 +18,8 @@ Authorization: Bearer <AGENT_API_TOKEN>
 `catalog` returns:
 
 - `musics`: music summaries with related novel ids, comic ids, and lyric availability.
-- `novels`: novel metadata with `r2Key` derived as `novel/{id}.md`.
-- `comics`: comic metadata with `r2Prefix` derived as `comics/{id}/`.
+- `novels`: novel metadata.
+- `comics`: comic metadata.
 - `books`: book metadata with ordered novel ids and purchase links.
 
 `musics` endpoints return music summaries:
@@ -31,7 +31,7 @@ interface AgentMusicSummary {
   enTitle: string;
   title: string;
   specialPath?: string;
-  youtubeId: string;
+  youtubeId?: string;
   novels: number[];
   comics: number[];
   hasLyricTrack: boolean;

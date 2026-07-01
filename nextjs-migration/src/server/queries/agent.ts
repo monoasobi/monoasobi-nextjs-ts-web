@@ -38,14 +38,8 @@ export const getAgentCatalog = async () => {
 
   return {
     musics: musics.map(mapMusicSummary),
-    novels: novels.map((novel) => ({
-      ...toNovel(novel),
-      r2Key: `novel/${novel.id}.md`,
-    })),
-    comics: comics.map((comic) => ({
-      ...toComic(comic),
-      r2Prefix: `comics/${comic.id}/`,
-    })),
+    novels: novels.map(toNovel),
+    comics: comics.map(toComic),
     books: books.map((book) => ({
       id: book.id,
       name: book.name,
