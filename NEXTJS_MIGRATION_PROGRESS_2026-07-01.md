@@ -95,3 +95,20 @@ DB 전환은 잠시 미루고, 기존 정적 `src/lib` 데이터와 R2 콘텐츠
 3. 공개 페이지 전체를 한 번 더 훑고, `RouteShell`이 `/admin`만 남는지 확인한다.
 4. 그 다음 DB/Turso 전환을 재개한다.
 
+## 최종 업데이트
+이 문서는 2026-07-01 작업 초반 진행 기록으로 작성되었고, 이후 같은 날 마이그레이션 핵심 작업이 추가로 완료되었다.
+
+추가 완료 사항:
+- `/private` 제한 콘텐츠 열람 인증을 Next.js API와 httpOnly cookie 세션 기준으로 정리했다.
+- Turso + Drizzle DB 전환을 완료했고, 앱 런타임 데이터 원본을 DB로 전환했다.
+- Agent 읽기 API와 token 인증을 추가했다.
+- `/admin` 사이트 관리자 화면과 `music`, `novel`, `comic`, `lyricTrack`, `book` CRUD API를 추가했다.
+- R2 콘텐츠 키는 DB 필드로 관리하지 않고 `novel/{id}.md`, `comics/{comicId}/` 규칙으로 조회하도록 정리했다.
+- `youtubeId` nullable 변경 migration을 적용했다.
+- React Compiler를 활성화했다.
+- Next.js 앱에서 `styled-components` 의존성을 제거했다.
+
+남은 작업:
+- 기존 Vite CSR 앱 제거와 `nextjs-migration/` 루트 승격은 사용자가 직접 진행한다.
+- 배포 환경변수 설정과 실제 배포 환경 빌드/동작 확인이 필요하다.
+- 페이지별 Open Graph metadata 적용은 후속 개선 작업으로 남긴다.
