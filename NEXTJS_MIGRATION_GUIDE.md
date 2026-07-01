@@ -451,8 +451,9 @@ lyric_tracks
 프론트와 다른 Codex 프로젝트가 사용할 읽기 API를 만든다.
 
 진행 결정:
-- 7단계 DB seed가 완료된 뒤 진행한다.
-- 프론트 화면 이식 중에는 이 API를 만들지 않고 기존 정적 데이터와 콘텐츠 API를 사용한다.
+- 완료됨.
+- Agent API는 DB query를 직접 사용하고, 앱 화면이나 private-reader/admin 권한과 분리한다.
+- 로컬/배포 환경에는 `AGENT_API_TOKEN`을 추가해야 한다.
 
 Agent API:
 ```txt
