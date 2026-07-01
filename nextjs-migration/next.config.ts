@@ -5,6 +5,9 @@ import { fileURLToPath } from "node:url";
 const nextConfigDir = dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
+  reactCompiler: {
+    compilationMode: "infer",
+  },
   turbopack: {
     root: nextConfigDir,
   },
