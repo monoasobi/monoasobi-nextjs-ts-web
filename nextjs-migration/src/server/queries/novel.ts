@@ -42,7 +42,6 @@ export const getNovelContentAccess = async (id: number) => {
     columns: {
       id: true,
       isPublished: true,
-      contentKey: true,
     },
     where: (novels, { eq }) => eq(novels.id, id),
   });

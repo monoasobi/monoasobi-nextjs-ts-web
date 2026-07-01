@@ -15,6 +15,13 @@
       "when": 1782904127597,
       "tag": "0001_famous_tombstone",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1782906135876,
+      "tag": "0002_crazy_scarecrow",
+      "breakpoints": true
     }
   ]
 }

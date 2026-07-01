@@ -38,7 +38,7 @@ export const GET = async (request: Request, context: NovelRouteContext) => {
   }
 
   try {
-    const object = await getR2Object(novel.contentKey);
+    const object = await getR2Object(`novel/${novel.id}.md`);
     if (!object) return new Response("File not found", { status: 404 });
 
     const body = await r2BodyToResponseBody(object.Body);

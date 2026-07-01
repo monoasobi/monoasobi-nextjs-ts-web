@@ -3,10 +3,10 @@ import { readFile, readdir } from "node:fs/promises";
 
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
-import { books as sourceBooks } from "../../lib/book";
-import { comics as sourceComics } from "../../lib/comic";
-import { musics as sourceMusics } from "../../lib/music";
-import { novels as sourceNovels } from "../../lib/novel";
+import { books as sourceBooks } from "./seed-data/book";
+import { comics as sourceComics } from "./seed-data/comic";
+import { musics as sourceMusics } from "./seed-data/music";
+import { novels as sourceNovels } from "./seed-data/novel";
 import {
   bookNovels,
   bookPurchaseLinks,
@@ -24,7 +24,7 @@ interface LyricTrackSeed {
   lyric: unknown;
 }
 
-const lyricsDir = new URL("../../../public/lyrics/", import.meta.url);
+const lyricsDir = new URL("./seed-data/lyrics/", import.meta.url);
 const envFile = new URL("../../../.env", import.meta.url);
 
 const loadEnvFile = () => {
@@ -118,7 +118,6 @@ const seedNovels = async () => {
         translatorUrl: novel.translated ? novel.translatorUrl : null,
         translated: novel.translated ?? false,
         isPublished: novel.isPublished ?? false,
-        contentKey: `novel/${novel.id}.md`,
       })
       .onConflictDoUpdate({
         target: novels.id,
@@ -132,7 +131,6 @@ const seedNovels = async () => {
           translatorUrl: novel.translated ? novel.translatorUrl : null,
           translated: novel.translated ?? false,
           isPublished: novel.isPublished ?? false,
-          contentKey: `novel/${novel.id}.md`,
         },
       });
   }
@@ -151,7 +149,6 @@ const seedComics = async () => {
         translator: comic.translator,
         translatorUrl: comic.translatorUrl,
         length: comic.length,
-        imagePrefix: `comics/${comic.id}/`,
       })
       .onConflictDoUpdate({
         target: comics.id,
@@ -163,7 +160,6 @@ const seedComics = async () => {
           translator: comic.translator,
           translatorUrl: comic.translatorUrl,
           length: comic.length,
-          imagePrefix: `comics/${comic.id}/`,
         },
       });
   }

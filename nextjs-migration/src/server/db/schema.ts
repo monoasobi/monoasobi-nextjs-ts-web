@@ -42,7 +42,6 @@ export const novels = sqliteTable("novels", {
   isPublished: integer("is_published", { mode: "boolean" })
     .notNull()
     .default(false),
-  contentKey: text("content_key").notNull(),
   createdAt: text("created_at")
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
@@ -62,7 +61,6 @@ export const comics = sqliteTable("comics", {
   translator: text("translator").notNull(),
   translatorUrl: text("translator_url").notNull(),
   length: integer("length").notNull(),
-  imagePrefix: text("image_prefix").notNull(),
   createdAt: text("created_at")
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),

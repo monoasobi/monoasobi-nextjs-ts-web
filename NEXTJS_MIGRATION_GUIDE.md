@@ -58,7 +58,7 @@ Next.js app
     queries/                   페이지/API/metadata가 공유하는 조회 함수
     mutations/                 사이트 관리자 쓰기 작업
     schemas/                   Zod 기반 관리자 입력 검증
-    seed/                      기존 lib 데이터 seed
+    db/seed-data/              초기 DB bootstrap 데이터
 
   atoms 또는 store/             Jotai 전역 상태
   types/                       도메인 타입
@@ -69,7 +69,7 @@ Next.js app
 
 주요 경계:
 - 페이지 UI는 기존처럼 얇은 page와 `components/*` 조합으로 유지한다.
-- `src/lib` 정적 데이터는 Turso DB와 seed로 이전한다.
+- `src/lib` 정적 데이터는 Turso DB로 이전한다. 이전 후 앱 런타임의 데이터 원본은 DB이며, 정적 seed 데이터는 초기 bootstrap/복구용으로만 둔다.
 - R2는 public bucket으로 열지 않고 Next.js API에서 프록시한다.
 - 기존 `admin` 의미는 `private-reader`로 옮기고, 새 `admin`은 사이트 관리자 권한으로만 사용한다.
 - 다른 Codex 프로젝트는 MCP가 아니라 `/api/agent/*` HTTP API만 사용한다.
@@ -107,7 +107,7 @@ Next.js app
 - 화면 전용 스타일은 해당 컴포넌트 또는 route 가까이에 `*.module.css`로 둔다.
 - CSS Modules 파일이 커지면 역할별 class를 정리하되, 별도 런타임 스타일 라이브러리를 새로 늘리지 않는다.
 - 기존 `styled-components` 코드는 legacy로 취급한다. 화면 복원을 빠르게 하기 위해 임시 이식은 허용하지만, 새 코드에는 추가하지 않고 단계적으로 CSS Modules로 전환한다.
-- 기존 alias import를 유지한다. 예: `@components/*`, `@lib/*`, `@atoms/*`, `@appTypes/*`.
+- 기존 alias import를 유지한다. 예: `@components/*`, `@atoms/*`, `@appTypes/*`. 단, 앱 런타임 데이터는 `@lib/*` 정적 배열을 사용하지 않고 서버 query를 통해 DB에서 가져온다.
 - 도메인 타입은 `src/types`의 기존 모델링 방식을 존중한다. 특히 `Novel`처럼 상태 조합이 중요한 타입은 DB 전환 후에도 명확히 표현한다.
 - 브라우저 API를 쓰는 컴포넌트는 Next.js에서 명확히 client component로 분리한다.
 - 기존 `admin` 명명은 새 사이트 관리자 기능을 만들기 전에 `privateReader` 계열로 먼저 정리한다.
@@ -300,7 +300,7 @@ React Router 기반 페이지를 Next.js App Router로 옮긴다.
 작업 방식:
 - 기존 page 컴포넌트의 렌더링 로직을 최대한 유지한다.
 - `useParams`, `useNavigate`, `Link` 사용부를 Next.js API로 교체한다.
-- 라우팅 이전 중에는 데이터는 기존 `src/lib/*.ts`를 계속 사용한다.
+- 라우팅 이전 초기에는 기존 `src/lib/*.ts`를 임시 사용했으나, DB 전환 이후에는 서버 query를 통해 DB 데이터를 사용한다.
 
 완료 기준:
 - 기존 주요 URL이 Next.js 라우트로 열린다.
@@ -432,16 +432,16 @@ lyric_tracks
 `src/lib/*.ts`와 `src/lib/lyrics/*.json`의 데이터를 DB seed로 이전한다.
 
 진행 결정:
-- DB 스키마와 migration 기반은 6단계에서 유지하되, 실제 Turso 서비스 생성, migration 적용, seed, 프론트 데이터 소스 교체는 별도 DB 전환 작업으로 미룬다.
-- 그 전까지 프론트 이식은 기존 정적 `src/lib` 데이터와 5단계에서 만든 R2 콘텐츠 API를 사용해 진행한다.
-- DB 전환을 재개할 때 이 7단계부터 다시 시작한다.
+- 완료됨.
+- Turso migration과 seed를 적용했고, 앱 런타임의 기본 데이터 원본은 DB로 전환했다.
+- 기존 정적 데이터는 `nextjs-migration/src/server/db/seed-data/` 아래 bootstrap/복구용 데이터로만 유지한다.
 
 작업 항목:
-- `music.ts` -> `musics`
-- `novel.ts` -> `novels`
-- `comic.ts` -> `comics`
-- `book.ts` -> `books`, `book_novels`, `book_purchase_links`
-- `lyrics/*.json` -> `lyric_tracks` 또는 R2
+- `seed-data/music.ts` -> `musics`
+- `seed-data/novel.ts` -> `novels` (`novel/{id}.md` R2 key는 id에서 파생)
+- `seed-data/comic.ts` -> `comics` (`comics/{id}/` R2 prefix는 id에서 파생)
+- `seed-data/book.ts` -> `books`, `book_novels`, `book_purchase_links`
+- `seed-data/lyrics/*.json` -> `lyric_tracks.lyric_json`
 
 완료 기준:
 - DB 데이터가 기존 정적 데이터와 동일하다.
@@ -482,8 +482,9 @@ Authorization: Bearer <AGENT_API_TOKEN>
 기존 `src/lib` import를 API 또는 서버 DB 조회로 교체한다.
 
 진행 결정:
-- 7~8단계가 완료된 뒤 진행한다.
-- 그 전까지 Next.js 화면은 기존 `src/lib` 정적 데이터 import를 허용한다.
+- 완료됨.
+- Next.js 화면은 Server Component/page에서 DB query를 수행하고 Client Component에 props로 전달한다.
+- 앱 런타임에서 기존 `src/lib` 정적 배열 import는 허용하지 않는다.
 
 작업 순서:
 1. 사이드바 음악 목록
