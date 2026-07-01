@@ -1,0 +1,298 @@
+.container {
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    width: 100%;
+    height: calc(100dvh - 56px);
+    overflow: hidden;
+    padding: 20px;
+}
+
+.loginCard {
+    width: min(420px, 100%);
+    margin: 72px auto 0;
+}
+
+.header {
+    margin-bottom: 16px;
+}
+
+.summaryGrid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(96px, 1fr));
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.summaryCard {
+    min-height: 76px;
+    border-radius: 6px;
+}
+
+.console {
+    display: grid;
+    grid-template-columns: minmax(320px, 40%) minmax(0, 1fr);
+    gap: 12px;
+    min-height: 0;
+}
+
+.consoleSidebar,
+.documentPanel {
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    border-radius: 6px;
+}
+
+.consoleSidebar {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+}
+
+.consolePanelHeader {
+    flex: 0 0 auto;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--gray-a5);
+    margin-bottom: 12px;
+}
+
+.treeScroll {
+    min-height: 0;
+    height: 100%;
+    padding: 8px;
+}
+.documentScroll {
+    min-height: 0;
+    height: 100%;
+}
+
+.tree {
+    display: grid;
+    gap: 16px;
+    padding-right: 8px;
+}
+
+.treeSection {
+    display: grid;
+    gap: 6px;
+}
+
+.collectionLabel,
+.folderLabel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 28px;
+    padding-left: calc(var(--depth, 0) * 16px);
+}
+
+.collectionLabel {
+    padding: 0 4px 6px;
+    color: var(--gray-12);
+    border-bottom: 1px solid var(--gray-a4);
+}
+
+.treeDocument,
+.treeFolder {
+    display: grid;
+    gap: 2px;
+}
+
+.musicTreeRow {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr);
+    align-items: stretch;
+    min-height: 56px;
+    margin-top: 4px;
+    border: 1px solid var(--gray-a4);
+    border-radius: 6px;
+    background: var(--gray-a2);
+    overflow: hidden;
+}
+
+.musicTreeRow:hover {
+    background: var(--gray-a3);
+}
+
+.musicTreeRow[data-active="true"] {
+    border-color: var(--accent-a7);
+    background: var(--accent-a4);
+}
+
+.expandButton,
+.musicSelectButton {
+    border: 0;
+    color: inherit;
+    background: transparent;
+    font: inherit;
+    cursor: pointer;
+}
+
+.expandButton {
+    display: grid;
+    place-items: center;
+    border-right: 1px solid var(--gray-a4);
+}
+
+.expandButton:hover {
+    background: var(--gray-a3);
+}
+
+.chevron {
+    display: inline-block;
+    color: var(--gray-10);
+    font-size: 13px;
+    transition: transform 120ms ease;
+}
+
+.chevron[data-expanded="true"] {
+    transform: rotate(90deg);
+}
+
+.musicSelectButton {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: start;
+    min-width: 0;
+    padding: 7px 8px;
+    text-align: left;
+}
+
+.treeChildren {
+    display: grid;
+    gap: 2px;
+    padding: 2px 0 4px;
+}
+
+.treeButton {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: start;
+    width: 100%;
+    min-height: 34px;
+    padding: 7px 8px 7px calc(8px + var(--depth, 0) * 16px);
+    border: 1px solid transparent;
+    border-radius: 6px;
+    color: var(--gray-12);
+    background: transparent;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.treeButton:hover {
+    background: var(--gray-a3);
+}
+
+.treeButton[data-active="true"] {
+    border-color: var(--accent-a7);
+    background: var(--accent-a4);
+    color: var(--accent-12);
+}
+
+.treeButtonContent {
+    display: grid;
+    min-width: 0;
+    gap: 3px;
+}
+
+.treeButtonBadge {
+    width: fit-content;
+}
+
+.treeButtonLabel,
+.treeButtonMeta {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.treeButtonLabel {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.treeButton[data-kind="music"] .treeButtonLabel {
+    font-size: 14px;
+}
+
+.treeButtonMeta {
+    color: var(--gray-10);
+    font-size: 11px;
+    padding-top: 3px;
+}
+
+.documentPanel {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+}
+
+.documentBody {
+    display: grid;
+    align-content: start;
+    gap: 0;
+    border: 1px solid var(--gray-a4);
+    border-radius: 6px;
+}
+
+.fieldRow {
+    display: grid;
+    grid-template-columns: minmax(140px, 24%) minmax(0, 1fr);
+    min-height: 36px;
+    border-bottom: 1px solid var(--gray-a4);
+}
+
+.fieldRow:last-child {
+    border-bottom: 0;
+}
+
+.fieldKey,
+.fieldValue {
+    min-width: 0;
+    padding: 9px 12px;
+    overflow-wrap: anywhere;
+}
+
+.fieldKey {
+    color: var(--gray-11);
+    background: var(--gray-a2);
+    border-right: 1px solid var(--gray-a4);
+    font-family: var(--code-font-family);
+}
+
+.fieldValue {
+    font-family: var(--code-font-family);
+}
+
+.jsonSection {
+    display: grid;
+    gap: 8px;
+    padding: 12px;
+    border-top: 1px solid var(--gray-a4);
+}
+
+.jsonBox {
+    max-height: 360px;
+    margin: 0;
+    overflow: auto;
+    padding: 12px;
+    border: 1px solid var(--gray-a4);
+    border-radius: 6px;
+    background: var(--gray-a2);
+    font-family: var(--code-font-family);
+    font-size: 12px;
+    line-height: 1.55;
+    white-space: pre;
+}
+
+@media (max-width: 980px) {
+    .summaryGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .console {
+        grid-template-columns: 1fr;
+    }
+}
