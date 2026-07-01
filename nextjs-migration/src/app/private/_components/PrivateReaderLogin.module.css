@@ -1,0 +1,27 @@
+.container {
+  width: 100%;
+  height: calc(100dvh - 56px);
+}
+
+.container :global(.rt-ScrollAreaViewport) {
+  padding: 24px;
+  line-height: 160%;
+}
+
+.pageFrame {
+  width: 100%;
+  min-height: 100%;
+}
+
+.card {
+  position: relative;
+  width: min(420px, 100%);
+  overflow: hidden;
+  padding: 16px;
+}
+
+.loadingOverlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(255, 255, 255, 0.6);
+}

@@ -1,5 +1,9 @@
-import { novels } from "@lib/novel";
 import { getR2Object, r2BodyToResponseBody } from "@/server/storage";
+import {
+  PRIVATE_READER_COOKIE_NAME,
+  verifyPrivateReaderSession,
+} from "@/server/auth/private-reader";
+import { novels } from "@lib/novel";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -17,9 +21,17 @@ export const GET = async (request: Request, context: NovelRouteContext) => {
   }
 
   const novel = novels.find((item) => item.id === novelId);
-  const authorization = request.headers.get("authorization");
+  const cookieHeader = request.headers.get("cookie") ?? "";
+  const privateReaderSession = cookieHeader
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${PRIVATE_READER_COOKIE_NAME}=`))
+    ?.split("=")[1];
 
-  if (novel?.isPublished && authorization !== "monoasobi") {
+  if (
+    novel?.isPublished &&
+    !verifyPrivateReaderSession(privateReaderSession)
+  ) {
     return new Response("Unauthorized", { status: 401 });
   }
 

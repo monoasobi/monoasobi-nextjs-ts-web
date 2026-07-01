@@ -1,10 +1,8 @@
 "use client";
 
-import { privateReaderAtom } from "@atoms/privateReader.atom";
 import { Error as ErrorView } from "@components/feedback/Error";
 import { Loading } from "@components/feedback/Loading";
 import { Flex, ScrollArea } from "@radix-ui/themes";
-import { useAtomValue } from "jotai";
 import { useEffect, useRef, useState, type UIEvent } from "react";
 import { NovelMarkdown } from "./NovelMarkdown";
 import styles from "./NovelReader.module.css";
@@ -18,7 +16,6 @@ export const NovelReader = ({ id }: NovelReaderProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
   const novelRef = useRef<HTMLDivElement>(null);
-  const hasPrivateReaderAccess = useAtomValue(privateReaderAtom);
 
   useEffect(() => {
     const fetchNovel = async (novelId: number | string) => {
@@ -26,11 +23,7 @@ export const NovelReader = ({ id }: NovelReaderProps) => {
         setIsLoading(true);
         setIsError(false);
 
-        const res = await fetch(`/api/content/novels/${novelId}`, {
-          headers: {
-            authorization: hasPrivateReaderAccess ? "monoasobi" : "yoasobi",
-          },
-        });
+        const res = await fetch(`/api/content/novels/${novelId}`);
 
         if (!res.ok) throw new Error("Failed to fetch novel");
         setMarkdown(await res.text());
@@ -43,7 +36,7 @@ export const NovelReader = ({ id }: NovelReaderProps) => {
     };
 
     fetchNovel(id);
-  }, [id, hasPrivateReaderAccess]);
+  }, [id]);
 
   useEffect(() => {
     if (!markdown) return;
