@@ -1,18 +1,14 @@
 "use client";
 
-import type { Music } from "@appTypes/music";
-import { novels } from "@lib/novel";
 import { Button, Card, Flex, Heading, ScrollArea, Text } from "@radix-ui/themes";
 import Link from "next/link";
 import styles from "./Translate.module.css";
 
 interface TranslateProps {
-  music: Music;
+  originUrl?: string;
 }
 
-export const Translate = ({ music }: TranslateProps) => {
-  const novel = novels.find((novel) => novel.musicId === music.id);
-
+export const Translate = ({ originUrl }: TranslateProps) => {
   return (
     <ScrollArea className={styles.container} scrollbars="vertical">
       <Flex className={styles.pageFrame} direction="column">
@@ -34,9 +30,9 @@ export const Translate = ({ music }: TranslateProps) => {
                   envi.9.official@gmail.com
                 </a>
               </Text>
-              {novel?.originUrl && (
+              {originUrl && (
                 <Button size="1" asChild variant="outline">
-                  <Link href={novel.originUrl} target="_blank">
+                  <Link href={originUrl} target="_blank">
                     원문 보러가기
                   </Link>
                 </Button>

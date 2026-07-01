@@ -9,6 +9,8 @@ export const metadata: Metadata = {
   description: "YOASOBI 원작 소설과 번역을 모아 읽는 공간",
 };
 
+export const dynamic = "force-dynamic";
+
 export default function RootLayout({
   children,
 }: Readonly<{

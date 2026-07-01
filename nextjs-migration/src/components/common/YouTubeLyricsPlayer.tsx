@@ -3,7 +3,6 @@
 import type { LyricTrack } from "@appTypes/lyric";
 import type { Music } from "@appTypes/music";
 import { LyricsDisplayV2 } from "@components/common/LyricsDisplayV2";
-import { loadLyricTrack } from "@lib/lyrics";
 import {
   Button,
   Card,
@@ -13,7 +12,7 @@ import {
   ScrollArea,
   Text,
 } from "@radix-ui/themes";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { VideoPlayer, type VideoPlayerHandle } from "./VideoPlayer";
 import styles from "./YouTubeLyricsPlayer.module.css";
 
@@ -21,38 +20,17 @@ const OFFSET_STEPS = [0.01, 0.05, 0.1, 0.5];
 
 export interface YouTubeLyricsPlayerProps {
   music: Music;
+  lyricTrack: LyricTrack | null;
 }
 
-export const YouTubeLyricsPlayer = ({ music }: YouTubeLyricsPlayerProps) => {
+export const YouTubeLyricsPlayer = ({
+  music,
+  lyricTrack,
+}: YouTubeLyricsPlayerProps) => {
   const videoPlayerRef = useRef<VideoPlayerHandle>(null);
-  const [track, setTrack] = useState<LyricTrack | null>(null);
-  const [isLoadingTrack, setIsLoadingTrack] = useState(true);
-  const [loadError, setLoadError] = useState(false);
-  const [lyricsOffset, setLyricsOffset] = useState(0);
+  const track = lyricTrack;
+  const [lyricsOffset, setLyricsOffset] = useState(track?.sync ?? 0);
   const [currentTime, setCurrentTime] = useState(0);
-
-  useEffect(() => {
-    let ignore = false;
-
-    loadLyricTrack(music.id)
-      .then((nextTrack) => {
-        if (ignore) return;
-
-        setTrack(nextTrack);
-        setLyricsOffset(nextTrack?.sync ?? 0);
-      })
-      .catch(() => {
-        if (ignore) return;
-        setLoadError(true);
-      })
-      .finally(() => {
-        if (!ignore) setIsLoadingTrack(false);
-      });
-
-    return () => {
-      ignore = true;
-    };
-  }, [music.id]);
 
   const adjustedTime = currentTime + lyricsOffset;
 
@@ -177,23 +155,7 @@ export const YouTubeLyricsPlayer = ({ music }: YouTubeLyricsPlayerProps) => {
           </Flex>
         </Flex>
 
-        {isLoadingTrack && (
-          <Card className={styles.statusCard}>
-            <Text size="2" color="gray">
-              가사 파일을 불러오는 중입니다.
-            </Text>
-          </Card>
-        )}
-
-        {loadError && (
-          <Card className={styles.statusCard}>
-            <Text size="2" color="red">
-              가사 파일을 불러오지 못했습니다.
-            </Text>
-          </Card>
-        )}
-
-        {!isLoadingTrack && !loadError && track && (
+        {track && (
           <LyricsDisplayV2
             lyrics={track.lyric}
             currentTime={currentTime}
@@ -202,7 +164,7 @@ export const YouTubeLyricsPlayer = ({ music }: YouTubeLyricsPlayerProps) => {
           />
         )}
 
-        {!isLoadingTrack && !loadError && !track && (
+        {!track && (
           <Card className={styles.statusCard}>
             <Text size="2" color="gray">
               이 곡의 가사 파일은 아직 준비되지 않았습니다.

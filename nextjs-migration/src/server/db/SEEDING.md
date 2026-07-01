@@ -11,3 +11,12 @@ routes.
 
 R2 object contents are not stored in the database. The database stores only
 object keys or prefixes needed by the content API.
+
+Run the initial seed with:
+
+```sh
+npm run db:seed
+```
+
+The seed script is idempotent for current static ids. Re-running it updates
+existing rows with the same primary keys and relationship keys.

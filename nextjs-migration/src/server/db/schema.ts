@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { integer, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
+import { integer, real, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
 
 export const musics = sqliteTable("musics", {
   id: integer("id").primaryKey(),
@@ -100,7 +100,7 @@ export const lyricTracks = sqliteTable("lyric_tracks", {
   musicId: integer("music_id")
     .primaryKey()
     .references(() => musics.id),
-  sync: integer("sync").notNull().default(0),
+  sync: real("sync").notNull().default(0),
   lyricJson: text("lyric_json", { mode: "json" }).notNull(),
   createdAt: text("created_at")
     .notNull()

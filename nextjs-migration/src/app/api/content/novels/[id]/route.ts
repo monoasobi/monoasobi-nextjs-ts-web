@@ -3,7 +3,7 @@ import {
   PRIVATE_READER_COOKIE_NAME,
   verifyPrivateReaderSession,
 } from "@/server/auth/private-reader";
-import { novels } from "@lib/novel";
+import { getNovelContentAccess } from "@/server/queries/novel";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -20,7 +20,9 @@ export const GET = async (request: Request, context: NovelRouteContext) => {
     return new Response("Invalid novel id", { status: 400 });
   }
 
-  const novel = novels.find((item) => item.id === novelId);
+  const novel = await getNovelContentAccess(novelId);
+  if (!novel) return new Response("Novel not found", { status: 404 });
+
   const cookieHeader = request.headers.get("cookie") ?? "";
   const privateReaderSession = cookieHeader
     .split(";")
@@ -36,7 +38,7 @@ export const GET = async (request: Request, context: NovelRouteContext) => {
   }
 
   try {
-    const object = await getR2Object(`novel/${novelId}.md`);
+    const object = await getR2Object(novel.contentKey);
     if (!object) return new Response("File not found", { status: 404 });
 
     const body = await r2BodyToResponseBody(object.Body);

@@ -1,5 +1,6 @@
 "use client";
 
+import type { LyricTrack } from "@appTypes/lyric";
 import type { Music } from "@appTypes/music";
 import { YouTubeLyricsPlayer } from "@components/common/YouTubeLyricsPlayer";
 import { MusicalNoteIcon } from "@heroicons/react/16/solid";
@@ -25,6 +26,7 @@ import styles from "./ContentsContainer.module.css";
 interface ContentsContainerProps {
   children: ReactNode;
   music: Music;
+  lyricTrack?: LyricTrack | null;
   content?: {
     title: string;
     writer: string;
@@ -37,6 +39,7 @@ interface ContentsContainerProps {
 export const ContentsContainer = ({
   children,
   music,
+  lyricTrack = null,
   content,
 }: ContentsContainerProps) => {
   const { title, korTitle } = music;
@@ -106,7 +109,15 @@ export const ContentsContainer = ({
             </Flex>
           </Popover.Content>
         </Card>
-        {isLyrics ? <YouTubeLyricsPlayer key={music.id} music={music} /> : children}
+        {isLyrics ? (
+          <YouTubeLyricsPlayer
+            key={music.id}
+            music={music}
+            lyricTrack={lyricTrack}
+          />
+        ) : (
+          children
+        )}
         <IconButton
           className={styles.floatingToggle}
           size="3"

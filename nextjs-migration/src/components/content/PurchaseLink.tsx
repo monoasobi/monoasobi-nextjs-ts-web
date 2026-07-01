@@ -1,8 +1,5 @@
 "use client";
 
-import { books } from "@lib/book";
-import { musics } from "@lib/music";
-import { novels } from "@lib/novel";
 import {
   Button,
   Card,
@@ -15,13 +12,29 @@ import {
 import Link from "next/link";
 import styles from "./PurchaseLink.module.css";
 
-interface PurchaseLinkProps {
-  bookId: number;
+export interface PurchaseLinkBook {
+  id: number;
+  name: string;
+  novels: {
+    id: number;
+    title: string;
+    writer: string;
+    musicKorTitle: string;
+  }[];
+  purchaseLinks: {
+    kyoboURL: string;
+    yes24URL: string;
+    aladinURL: string;
+    ridiURL: string;
+    naverURL: string;
+  };
 }
 
-export const PurchaseLink = ({ bookId }: PurchaseLinkProps) => {
-  const book = books[bookId];
+interface PurchaseLinkProps {
+  book: PurchaseLinkBook;
+}
 
+export const PurchaseLink = ({ book }: PurchaseLinkProps) => {
   return (
     <ScrollArea className={styles.container} scrollbars="vertical">
       <Flex className={styles.pageFrame} direction="column">
@@ -45,31 +58,31 @@ export const PurchaseLink = ({ bookId }: PurchaseLinkProps) => {
               direction={{ initial: "column", md: "row" }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                className={styles.bookImg}
-                src={`/images/books/${bookId}.jpg`}
-                alt={book.name}
-              />
+                <img
+                  className={styles.bookImg}
+                  src={`/images/books/${book.id}.jpg`}
+                  alt={book.name}
+                />
               <Flex direction="column" gap="4">
                 <Heading align={{ md: "left", initial: "center" }}>
                   {book.name}
                 </Heading>
                 <Separator size="4" />
                 <Flex direction="column" gap="2">
-                  {book.novelIds.map((id: number) => (
-                    <Flex direction="column" gap="1" key={id}>
+                  {book.novels.map((novel) => (
+                    <Flex direction="column" gap="1" key={novel.id}>
                       <Text align="center" size="1" color="gray">
-                        {`♪ ${musics[novels[id].musicId].korTitle}`}
+                        {`♪ ${novel.musicKorTitle}`}
                       </Text>
                       <Text
                         align="center"
                         size="2"
                         color="gray"
-                      >{`${novels[id].writer} <${novels[id].title}>`}</Text>
+                      >{`${novel.writer} <${novel.title}>`}</Text>
                     </Flex>
                   ))}
                   <Text align="center" size="2" color="red" weight="medium">
-                    총 {book.novelIds.length}편 수록
+                    총 {book.novels.length}편 수록
                   </Text>
                 </Flex>
                 <Flex wrap="wrap" gap="2" justify="center">

@@ -1,24 +1,30 @@
 "use client";
 
+import type { LyricTrack } from "@appTypes/lyric";
+import type { Music } from "@appTypes/music";
+import type { Novel } from "@appTypes/novel";
 import { privateReaderAtom } from "@atoms/privateReader.atom";
 import { ContentsContainer } from "@components/content/ContentsContainer";
 import { NovelReader } from "@components/content/NovelReader";
 import { PurchaseLink } from "@components/content/PurchaseLink";
 import { Translate } from "@components/content/Translate";
-import { musics } from "@lib/music";
-import { novels } from "@lib/novel";
 import { useAtomValue } from "jotai";
+import type { PurchaseLinkBook } from "@components/content/PurchaseLink";
 
 interface NovelPageClientProps {
-  id: number;
+  music: Music;
+  novel: Novel;
+  lyricTrack: LyricTrack | null;
+  purchaseBook: PurchaseLinkBook | null;
 }
 
-export const NovelPageClient = ({ id }: NovelPageClientProps) => {
-  const novel = novels.find((novel) => novel.id === id);
-  const music = musics.find((music) => music.id === novel?.musicId);
+export const NovelPageClient = ({
+  music,
+  novel,
+  lyricTrack,
+  purchaseBook,
+}: NovelPageClientProps) => {
   const hasPrivateReaderAccess = useAtomValue(privateReaderAtom);
-
-  if (!music || !novel) return null;
 
   const translator =
     !novel.isPublished || hasPrivateReaderAccess
@@ -36,16 +42,17 @@ export const NovelPageClient = ({ id }: NovelPageClientProps) => {
   return (
     <ContentsContainer
       music={music}
+      lyricTrack={lyricTrack}
       content={{
         ...novel,
         translator,
         translatorUrl,
       }}
     >
-      {novel.isPublished && !hasPrivateReaderAccess ? (
-        <PurchaseLink bookId={novel.bookId} />
+      {novel.isPublished && !hasPrivateReaderAccess && purchaseBook ? (
+        <PurchaseLink book={purchaseBook} />
       ) : !novel.translated ? (
-        <Translate music={music} />
+        <Translate originUrl={novel.originUrl} />
       ) : (
         <NovelReader id={novel.id} />
       )}
