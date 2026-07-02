@@ -1,12 +1,19 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "@radix-ui/themes/styles.css";
 import "./globals.css";
 import { AppFrame } from "@components/layout/AppFrame";
+import { createPageMetadata, metadataBase, THEME_COLOR } from "@lib/metadata";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "monoasobi",
-  description: "YOASOBI 원작 소설과 번역을 모아 읽는 공간",
+  ...createPageMetadata(),
+  metadataBase,
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: THEME_COLOR,
 };
 
 export const dynamic = "force-dynamic";
