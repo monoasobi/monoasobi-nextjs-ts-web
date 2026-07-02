@@ -55,6 +55,31 @@
     margin-bottom: 12px;
 }
 
+.documentActions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.documentTitleRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.documentTitleRow h4 {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.actionGroup {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
 .treeScroll {
     min-height: 0;
     height: 100%;
@@ -63,6 +88,7 @@
 .documentScroll {
     min-height: 0;
     height: 100%;
+    padding: 8px 16px;
 }
 
 .tree {
@@ -344,22 +370,6 @@
     font-family: var(--code-font-family);
 }
 
-.editorSelect {
-    width: 100%;
-    min-height: 32px;
-    padding: 0 10px;
-    border: 1px solid var(--gray-a7);
-    border-radius: 4px;
-    color: var(--gray-12);
-    background: var(--color-surface);
-    font: inherit;
-}
-
-.editorCheckbox {
-    width: 18px;
-    height: 18px;
-}
-
 .editorCheckboxLabel {
     display: inline-flex;
     align-items: center;
@@ -377,11 +387,15 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-  .console {
-    grid-template-columns: 1fr;
-  }
+    .console {
+        grid-template-columns: 1fr;
+    }
 
-  .editorGrid {
-    grid-template-columns: 1fr;
-  }
+    .consolePanelHeader {
+        align-items: flex-start;
+    }
+
+    .editorGrid {
+        grid-template-columns: 1fr;
+    }
 }
