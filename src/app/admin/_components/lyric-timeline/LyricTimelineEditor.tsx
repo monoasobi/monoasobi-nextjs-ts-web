@@ -2,34 +2,32 @@
 
 import type { LyricLine } from "@appTypes/lyric";
 import type { Music } from "@appTypes/music";
-import {
-  ArrowPathIcon,
-  BackwardIcon,
-  ForwardIcon,
-  ScissorsIcon,
-} from "@heroicons/react/24/outline";
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import {
   Button,
   Callout,
   Flex,
-  IconButton,
   Popover,
   Select,
   Text,
   TextArea,
   TextField,
-  Tooltip,
 } from "@radix-ui/themes";
 import { useRouter } from "next/navigation";
 import {
-  useEffect,
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
   type MouseEvent as ReactMouseEvent,
   type WheelEvent,
 } from "react";
+import styles from "./LyricTimelineEditor.module.css";
+import {
+  TimelineYouTubePreview,
+  type TimelineYouTubePreviewHandle,
+} from "./TimelineYouTubePreview";
 import {
   DEFAULT_PIXELS_PER_SECOND,
   MAX_PIXELS_PER_SECOND,
@@ -44,11 +42,6 @@ import {
   getTimelineStart,
   roundTime,
 } from "./time";
-import {
-  TimelineYouTubePreview,
-  type TimelineYouTubePreviewHandle,
-} from "./TimelineYouTubePreview";
-import styles from "./LyricTimelineEditor.module.css";
 
 const ZOOM_FACTOR = 1.18;
 const TICK_SECONDS = 5;
@@ -147,51 +140,49 @@ export const LyricTimelineEditor = ({
     );
   };
 
-  const resizeLineStart = useCallback((
-    index: number,
-    nextStart: number,
-    sourceLyrics = draftLyrics,
-  ) => {
-    const next = sourceLyrics.map((line) => ({ ...line }));
-    const line = next[index];
-    if (!line) return sourceLyrics;
+  const resizeLineStart = useCallback(
+    (index: number, nextStart: number, sourceLyrics = draftLyrics) => {
+      const next = sourceLyrics.map((line) => ({ ...line }));
+      const line = next[index];
+      if (!line) return sourceLyrics;
 
-    const minStart =
-      index > 0 ? next[index - 1].start + MIN_LINE_DURATION : 0;
-    const maxStart = line.end - MIN_LINE_DURATION;
-    const start = roundTime(clamp(nextStart, minStart, maxStart));
+      const minStart =
+        index > 0 ? next[index - 1].start + MIN_LINE_DURATION : 0;
+      const maxStart = line.end - MIN_LINE_DURATION;
+      const start = roundTime(clamp(nextStart, minStart, maxStart));
 
-    line.start = start;
-    if (index > 0 && next[index - 1].end > start) {
-      next[index - 1].end = start;
-    }
+      line.start = start;
+      if (index > 0 && next[index - 1].end > start) {
+        next[index - 1].end = start;
+      }
 
-    return next;
-  }, [draftLyrics]);
+      return next;
+    },
+    [draftLyrics],
+  );
 
-  const resizeLineEnd = useCallback((
-    index: number,
-    nextEnd: number,
-    sourceLyrics = draftLyrics,
-  ) => {
-    const next = sourceLyrics.map((line) => ({ ...line }));
-    const line = next[index];
-    if (!line) return sourceLyrics;
+  const resizeLineEnd = useCallback(
+    (index: number, nextEnd: number, sourceLyrics = draftLyrics) => {
+      const next = sourceLyrics.map((line) => ({ ...line }));
+      const line = next[index];
+      if (!line) return sourceLyrics;
 
-    const minEnd = line.start + MIN_LINE_DURATION;
-    const maxEnd =
-      index < next.length - 1
-        ? next[index + 1].end - MIN_LINE_DURATION
-        : Number.POSITIVE_INFINITY;
-    const end = roundTime(clamp(nextEnd, minEnd, maxEnd));
+      const minEnd = line.start + MIN_LINE_DURATION;
+      const maxEnd =
+        index < next.length - 1
+          ? next[index + 1].end - MIN_LINE_DURATION
+          : Number.POSITIVE_INFINITY;
+      const end = roundTime(clamp(nextEnd, minEnd, maxEnd));
 
-    line.end = end;
-    if (index < next.length - 1 && next[index + 1].start < end) {
-      next[index + 1].start = end;
-    }
+      line.end = end;
+      if (index < next.length - 1 && next[index + 1].start < end) {
+        next[index + 1].start = end;
+      }
 
-    return next;
-  }, [draftLyrics]);
+      return next;
+    },
+    [draftLyrics],
+  );
 
   const handleLineTimeChange = (
     index: number,
@@ -222,24 +213,27 @@ export const LyricTimelineEditor = ({
     };
   };
 
-  const handleDragMove = useCallback((clientX: number) => {
-    const drag = dragRef.current;
-    if (!drag) return;
+  const handleDragMove = useCallback(
+    (clientX: number) => {
+      const drag = dragRef.current;
+      if (!drag) return;
 
-    const deltaSeconds = (clientX - drag.startX) / pixelsPerSecond;
-    const line = drag.lyrics[drag.index];
-    if (!line) return;
+      const deltaSeconds = (clientX - drag.startX) / pixelsPerSecond;
+      const line = drag.lyrics[drag.index];
+      if (!line) return;
 
-    const nextTime =
-      drag.edge === "start"
-        ? line.start + deltaSeconds
-        : line.end + deltaSeconds;
-    setDraftLyrics(
-      drag.edge === "start"
-        ? resizeLineStart(drag.index, nextTime, drag.lyrics)
-        : resizeLineEnd(drag.index, nextTime, drag.lyrics),
-    );
-  }, [pixelsPerSecond, resizeLineEnd, resizeLineStart]);
+      const nextTime =
+        drag.edge === "start"
+          ? line.start + deltaSeconds
+          : line.end + deltaSeconds;
+      setDraftLyrics(
+        drag.edge === "start"
+          ? resizeLineStart(drag.index, nextTime, drag.lyrics)
+          : resizeLineEnd(drag.index, nextTime, drag.lyrics),
+      );
+    },
+    [pixelsPerSecond, resizeLineEnd, resizeLineStart],
+  );
 
   const stopDragging = useCallback(() => {
     dragRef.current = null;
@@ -264,41 +258,48 @@ export const LyricTimelineEditor = ({
     };
   }, [handleDragMove, stopDragging]);
 
-  const getAnchorTime = useCallback((clientX?: number) => {
-    const timeline = timelineRef.current;
-    if (!timeline) return currentTime || 0;
+  const getAnchorTime = useCallback(
+    (clientX?: number) => {
+      const timeline = timelineRef.current;
+      if (!timeline) return currentTime || 0;
 
-    const rect = timeline.getBoundingClientRect();
-    const x = clientX == null ? rect.width / 2 : clientX - rect.left;
-    return timelineStart + (timeline.scrollLeft + x) / pixelsPerSecond;
-  }, [currentTime, pixelsPerSecond, timelineStart]);
+      const rect = timeline.getBoundingClientRect();
+      const x = clientX == null ? rect.width / 2 : clientX - rect.left;
+      return timelineStart + (timeline.scrollLeft + x) / pixelsPerSecond;
+    },
+    [currentTime, pixelsPerSecond, timelineStart],
+  );
 
-  const zoomTimeline = useCallback((nextPixels: number, anchorTime = getAnchorTime()) => {
-    const timeline = timelineRef.current;
-    const nextPixelsPerSecond = clamp(
-      nextPixels,
-      MIN_PIXELS_PER_SECOND,
-      MAX_PIXELS_PER_SECOND,
-    );
+  const zoomTimeline = useCallback(
+    (nextPixels: number, anchorTime = getAnchorTime()) => {
+      const timeline = timelineRef.current;
+      const nextPixelsPerSecond = clamp(
+        nextPixels,
+        MIN_PIXELS_PER_SECOND,
+        MAX_PIXELS_PER_SECOND,
+      );
 
-    if (!timeline) {
+      if (!timeline) {
+        setPixelsPerSecond(nextPixelsPerSecond);
+        return;
+      }
+
+      const rect = timeline.getBoundingClientRect();
+      const anchorX =
+        anchorTime === currentTime
+          ? rect.width / 2
+          : (anchorTime - timelineStart) * pixelsPerSecond -
+            timeline.scrollLeft;
+
       setPixelsPerSecond(nextPixelsPerSecond);
-      return;
-    }
 
-    const rect = timeline.getBoundingClientRect();
-    const anchorX =
-      anchorTime === currentTime
-        ? rect.width / 2
-        : (anchorTime - timelineStart) * pixelsPerSecond - timeline.scrollLeft;
-
-    setPixelsPerSecond(nextPixelsPerSecond);
-
-    requestAnimationFrame(() => {
-      timeline.scrollLeft =
-        (anchorTime - timelineStart) * nextPixelsPerSecond - anchorX;
-    });
-  }, [currentTime, getAnchorTime, pixelsPerSecond, timelineStart]);
+      requestAnimationFrame(() => {
+        timeline.scrollLeft =
+          (anchorTime - timelineStart) * nextPixelsPerSecond - anchorX;
+      });
+    },
+    [currentTime, getAnchorTime, pixelsPerSecond, timelineStart],
+  );
 
   const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
     if (!event.metaKey) return;
@@ -344,48 +345,12 @@ export const LyricTimelineEditor = ({
   };
 
   const handleRulerClick = (event: ReactMouseEvent<HTMLDivElement>) => {
-    if (event.target !== event.currentTarget) return;
     const rect = event.currentTarget.getBoundingClientRect();
     const scrollLeft = timelineRef.current?.scrollLeft ?? 0;
     const time =
-      timelineStart + (scrollLeft + event.clientX - rect.left) / pixelsPerSecond;
+      timelineStart +
+      (scrollLeft + event.clientX - rect.left) / pixelsPerSecond;
     handleSeekDisplayTime(time);
-  };
-
-  const splitSelectedLine = () => {
-    if (selectedLineIndex == null) return;
-    const line = draftLyrics[selectedLineIndex];
-    if (!line) return;
-
-    const currentRawTime = currentTime - draftSync;
-    const splitTime =
-      currentRawTime > line.start + MIN_LINE_DURATION &&
-      currentRawTime < line.end - MIN_LINE_DURATION
-        ? roundTime(currentRawTime)
-        : roundTime(line.start + (line.end - line.start) / 2);
-
-    if (
-      splitTime <= line.start + MIN_LINE_DURATION ||
-      splitTime >= line.end - MIN_LINE_DURATION
-    ) {
-      setMessage({
-        tone: "error",
-        text: "선택한 라인이 너무 짧아 분할할 수 없습니다.",
-      });
-      return;
-    }
-
-    setDraftLyrics((prev) => {
-      const next = [...prev];
-      const original = next[selectedLineIndex];
-      next[selectedLineIndex] = { ...original, end: splitTime };
-      next.splice(selectedLineIndex + 1, 0, {
-        ...original,
-        start: splitTime,
-      });
-      return next;
-    });
-    setSelectedLineIndex(selectedLineIndex + 1);
   };
 
   const save = async () => {
@@ -398,11 +363,14 @@ export const LyricTimelineEditor = ({
       lyricJson: getNormalizedLyrics(draftLyrics),
     };
 
-    const response = await fetch(`/api/admin/lyric-tracks/${lyricTrack.musicId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    const response = await fetch(
+      `/api/admin/lyric-tracks/${lyricTrack.musicId}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      },
+    );
 
     setIsSaving(false);
 
@@ -506,43 +474,7 @@ export const LyricTimelineEditor = ({
                 되돌리기
               </Button>
             </Flex>
-            <Flex gap="1" wrap="wrap">
-              <Tooltip content="축소">
-                <IconButton
-                  type="button"
-                  size="1"
-                  variant="soft"
-                  color="gray"
-                  aria-label="타임라인 축소"
-                  onClick={() => zoomTimeline(pixelsPerSecond / ZOOM_FACTOR)}
-                >
-                  <BackwardIcon width="14" height="14" />
-                </IconButton>
-              </Tooltip>
-              <Tooltip content="확대">
-                <IconButton
-                  type="button"
-                  size="1"
-                  variant="soft"
-                  color="gray"
-                  aria-label="타임라인 확대"
-                  onClick={() => zoomTimeline(pixelsPerSecond * ZOOM_FACTOR)}
-                >
-                  <ForwardIcon width="14" height="14" />
-                </IconButton>
-              </Tooltip>
-              <Button
-                type="button"
-                size="1"
-                variant="soft"
-                color="gray"
-                disabled={selectedLineIndex == null}
-                onClick={splitSelectedLine}
-              >
-                <ScissorsIcon width="14" height="14" />
-                분할
-              </Button>
-            </Flex>
+
             {message && (
               <Callout.Root
                 color={message.tone === "error" ? "red" : "green"}
@@ -566,15 +498,13 @@ export const LyricTimelineEditor = ({
             >
               <div className={styles.ruler} onClick={handleRulerClick}>
                 {ticks.map((time) => (
-                  <button
-                    type="button"
+                  <div
                     key={time}
                     className={styles.tick}
                     style={{ left: timelineToPixel(time) }}
-                    onClick={() => handleSeekDisplayTime(time)}
                   >
                     {formatTime(time)}
-                  </button>
+                  </div>
                 ))}
               </div>
 
@@ -604,7 +534,7 @@ export const LyricTimelineEditor = ({
                         setSelectedLineIndex(open ? index : null)
                       }
                     >
-                      <Popover.Trigger asChild>
+                      <Popover.Trigger>
                         <div
                           className={styles.block}
                           data-active={isActive}
@@ -760,8 +690,7 @@ export const LyricTimelineEditor = ({
                                 value={line.callGuide ?? ""}
                                 onChange={(event) =>
                                   updateLine(index, {
-                                    callGuide:
-                                      event.target.value || undefined,
+                                    callGuide: event.target.value || undefined,
                                   })
                                 }
                               />
