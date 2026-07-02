@@ -1,0 +1,39 @@
+.container {
+  width: 100%;
+  max-width: 1024px;
+  height: calc(100dvh - 72px);
+}
+
+.container :global(.rt-ScrollAreaViewport) {
+  padding: 64px 24px 24px;
+}
+
+.card {
+  padding: 24px;
+  overflow: visible;
+}
+
+.pageFrame {
+  width: 100%;
+  min-height: 100%;
+}
+
+.smallImage {
+  width: 100%;
+  max-width: 360px;
+}
+
+.largeImage {
+  width: 100%;
+  max-width: 600px;
+}
+
+.desc {
+  width: 90%;
+}
+
+@media (max-width: 480px) {
+  .container :global(.rt-ScrollAreaViewport) {
+    padding: 64px 16px 24px;
+  }
+}

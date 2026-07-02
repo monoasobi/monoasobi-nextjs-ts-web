@@ -1,59 +1,30 @@
-import players1 from "@assets/players1.jpg";
-import players2 from "@assets/players2.jpg";
+"use client";
+
+/* eslint-disable @next/next/no-img-element */
+
 import { Button, Card, Flex, Heading, ScrollArea, Text } from "@radix-ui/themes";
-import { Link } from "react-router-dom";
-import styled from "styled-components";
-
-const Container = styled(ScrollArea)`
-  width: 100%;
-  max-width: 1024px;
-  height: calc(100dvh - 72px);
-
-  .rt-ScrollAreaViewport {
-    padding: 64px 24px 24px;
-  }
-
-  .card {
-    padding: 24px;
-    overflow: visible;
-  }
-
-  .subtitle {
-    font-style: italic;
-  }
-
-  .img {
-    width: 100%;
-    max-width: 600px;
-  }
-
-  .desc {
-    width: 90%;
-  }
-
-  @media (max-width: 480px) {
-    .rt-ScrollAreaViewport {
-      padding: 64px 16px 24px;
-    }
-  }
-`;
-
-const PageFrame = styled(Flex)`
-  width: 100%;
-  min-height: 100%;
-`;
+import Link from "next/link";
+import styles from "./SpecialPage.module.css";
 
 export const Players = () => {
   return (
-    <Container scrollbars="vertical">
-      <PageFrame direction="column">
-        <Card className="card">
+    <ScrollArea className={styles.container} scrollbars="vertical">
+      <Flex className={styles.pageFrame} direction="column">
+        <Card className={styles.card}>
           <Flex direction="column" align="center" gap="4">
-            <img className="img" src={players1} alt="fes" />
-            <img className="img" src={players2} alt="heartbeat" />
+            <img
+              className={styles.largeImage}
+              src="/images/assets/players1.jpg"
+              alt="players"
+            />
+            <img
+              className={styles.largeImage}
+              src="/images/assets/players2.jpg"
+              alt="memory of play"
+            />
             <Heading size="6">#MemoryOfPlay</Heading>
 
-            <Flex direction="column" gap="4" className="desc">
+            <Flex direction="column" gap="4" className={styles.desc}>
               <Text size="2">
                 「PLAYERS」는 플레이 스테이션 발매 30주년 기념 콜라보레이션
                 프로젝트 「Project: MEMORY CARD」를 통해 발매된 곡입니다.
@@ -67,7 +38,7 @@ export const Players = () => {
 
               <Button asChild variant="outline">
                 <Link
-                  to="https://www.yoasobi-music.jp/projectmemorycard/"
+                  href="https://www.yoasobi-music.jp/projectmemorycard/"
                   target="_blank"
                 >
                   원문 보러가기
@@ -76,7 +47,7 @@ export const Players = () => {
             </Flex>
           </Flex>
         </Card>
-      </PageFrame>
-    </Container>
+      </Flex>
+    </ScrollArea>
   );
 };

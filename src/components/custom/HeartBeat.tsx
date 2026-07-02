@@ -1,59 +1,26 @@
-import heartbeat from "@assets/1000heartbeat.png";
-import fes from "@assets/18fes.jpg";
+"use client";
+
+/* eslint-disable @next/next/no-img-element */
+
 import { Button, Card, Flex, Heading, ScrollArea, Text } from "@radix-ui/themes";
-import { Link } from "react-router-dom";
-import styled from "styled-components";
-
-const Container = styled(ScrollArea)`
-  width: 100%;
-  max-width: 1024px;
-  height: calc(100dvh - 72px);
-
-  .rt-ScrollAreaViewport {
-    padding: 64px 24px 24px;
-  }
-
-  .card {
-    padding: 24px;
-    overflow: visible;
-  }
-
-  .subtitle {
-    font-style: italic;
-  }
-
-  .img {
-    width: 100%;
-    max-width: 360px;
-  }
-
-  .desc {
-    width: 90%;
-  }
-
-  @media (max-width: 480px) {
-    .rt-ScrollAreaViewport {
-      padding: 64px 16px 24px;
-    }
-  }
-`;
-
-const PageFrame = styled(Flex)`
-  width: 100%;
-  min-height: 100%;
-`;
+import Link from "next/link";
+import styles from "./SpecialPage.module.css";
 
 export const HeartBeat = () => {
   return (
-    <Container scrollbars="vertical">
-      <PageFrame direction="column">
-        <Card className="card">
+    <ScrollArea className={styles.container} scrollbars="vertical">
+      <Flex className={styles.pageFrame} direction="column">
+        <Card className={styles.card}>
           <Flex direction="column" align="center" gap="4">
-            <img className="img" src={fes} alt="fes" />
-            <img className="img" src={heartbeat} alt="heartbeat" />
+            <img className={styles.smallImage} src="/images/assets/18fes.jpg" alt="fes" />
+            <img
+              className={styles.smallImage}
+              src="/images/assets/1000heartbeat.png"
+              alt="heartbeat"
+            />
             <Heading size="6">2023 NHK 18祭</Heading>
 
-            <Flex direction="column" gap="4" className="desc">
+            <Flex direction="column" gap="4" className={styles.desc}>
               <Text size="2">
                 18세의 마음을 담아 만든 신곡을 1,000명의 18세들과 함께 단
                 한 번의 무대에서 선보이는 NHK 18祭(18FES).
@@ -73,7 +40,7 @@ export const HeartBeat = () => {
 
               <Button asChild variant="outline">
                 <Link
-                  to="https://www.nhk.or.jp/18fes/shinon1000/movie/song/"
+                  href="https://www.nhk.or.jp/18fes/shinon1000/movie/song/"
                   target="_blank"
                 >
                   원문 보러가기
@@ -82,7 +49,7 @@ export const HeartBeat = () => {
             </Flex>
           </Flex>
         </Card>
-      </PageFrame>
-    </Container>
+      </Flex>
+    </ScrollArea>
   );
 };

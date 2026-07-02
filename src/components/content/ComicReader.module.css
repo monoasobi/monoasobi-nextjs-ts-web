@@ -1,0 +1,39 @@
+.container {
+  width: 100%;
+  height: calc(100dvh - 72px);
+}
+
+.container :global(.rt-ScrollAreaViewport) {
+  padding: 64px 24px 92px;
+  line-height: 160%;
+}
+
+.readerFrame {
+  width: 100%;
+  min-height: 100%;
+}
+
+.comicContainer {
+  width: 100%;
+  min-height: 100%;
+  max-width: 720px;
+  padding: 16px;
+}
+
+.comicContainer > img {
+  width: 100%;
+}
+
+.comicContainer > img:last-child {
+  margin-bottom: 24px;
+}
+
+@media screen and (max-width: 480px) {
+  .container :global(.rt-ScrollAreaViewport) {
+    padding: 64px 12px 12px;
+  }
+
+  .comicContainer {
+    padding: 0;
+  }
+}

@@ -1,7 +1,8 @@
-import { LyricTrack } from "@appTypes/lyric";
-import { Music } from "@appTypes/music";
+"use client";
+
+import type { LyricTrack } from "@appTypes/lyric";
+import type { Music } from "@appTypes/music";
 import { LyricsDisplayV2 } from "@components/common/LyricsDisplayV2";
-import { loadLyricTrack } from "@lib/lyrics";
 import {
   Button,
   Card,
@@ -11,79 +12,25 @@ import {
   ScrollArea,
   Text,
 } from "@radix-ui/themes";
-import { useEffect, useMemo, useRef, useState } from "react";
-import styled from "styled-components";
+import { useMemo, useRef, useState } from "react";
 import { VideoPlayer, type VideoPlayerHandle } from "./VideoPlayer";
+import styles from "./YouTubeLyricsPlayer.module.css";
 
 const OFFSET_STEPS = [0.01, 0.05, 0.1, 0.5];
 
-const Container = styled(ScrollArea)`
-  width: 100%;
-  height: calc(100dvh - 72px);
-
-  .rt-ScrollAreaViewport {
-    padding: 64px 24px 24px;
-  }
-
-  @media (max-width: 480px) {
-    .rt-ScrollAreaViewport {
-      padding: 64px 16px 24px;
-    }
-  }
-`;
-
-const InnerContainer = styled(Flex)`
-  width: 100%;
-`;
-
-const StatusCard = styled(Card)`
-  background-color: var(--gray-2);
-`;
-
-const SyncValue = styled(Text)`
-  font-variant-numeric: tabular-nums;
-`;
-
 export interface YouTubeLyricsPlayerProps {
   music: Music;
+  lyricTrack: LyricTrack | null;
 }
 
-export const YouTubeLyricsPlayer = ({ music }: YouTubeLyricsPlayerProps) => {
+export const YouTubeLyricsPlayer = ({
+  music,
+  lyricTrack,
+}: YouTubeLyricsPlayerProps) => {
   const videoPlayerRef = useRef<VideoPlayerHandle>(null);
-  const [track, setTrack] = useState<LyricTrack | null>(null);
-  const [isLoadingTrack, setIsLoadingTrack] = useState(true);
-  const [loadError, setLoadError] = useState(false);
-  const [lyricsOffset, setLyricsOffset] = useState(0);
+  const track = lyricTrack;
+  const [lyricsOffset, setLyricsOffset] = useState(track?.sync ?? 0);
   const [currentTime, setCurrentTime] = useState(0);
-
-  useEffect(() => {
-    let ignore = false;
-
-    setIsLoadingTrack(true);
-    setLoadError(false);
-    setTrack(null);
-    setLyricsOffset(0);
-    setCurrentTime(0);
-
-    loadLyricTrack(music.id)
-      .then((nextTrack) => {
-        if (ignore) return;
-
-        setTrack(nextTrack);
-        setLyricsOffset(nextTrack?.sync ?? 0);
-      })
-      .catch(() => {
-        if (ignore) return;
-        setLoadError(true);
-      })
-      .finally(() => {
-        if (!ignore) setIsLoadingTrack(false);
-      });
-
-    return () => {
-      ignore = true;
-    };
-  }, [music.id]);
 
   const adjustedTime = currentTime + lyricsOffset;
 
@@ -114,9 +61,9 @@ export const YouTubeLyricsPlayer = ({ music }: YouTubeLyricsPlayerProps) => {
       : "sync";
 
   return (
-    <Container scrollbars="vertical">
+    <ScrollArea className={styles.container} scrollbars="vertical">
       <Flex direction="column" gap="3">
-        <InnerContainer direction="column" gap="3">
+        <Flex className={styles.innerContainer} direction="column" gap="3">
           <Flex direction="column" gap="3">
             <Flex justify="between" gap="3" wrap="wrap">
               <Flex direction="row" align="end" gap="1" wrap="wrap">
@@ -126,7 +73,7 @@ export const YouTubeLyricsPlayer = ({ music }: YouTubeLyricsPlayerProps) => {
                 </Text>
               </Flex>
 
-              {import.meta.env.DEV && (
+              {process.env.NODE_ENV === "development" && (
                 <Popover.Root>
                   <Popover.Trigger>
                     <Button size="1" variant="soft" color="gray">
@@ -139,10 +86,14 @@ export const YouTubeLyricsPlayer = ({ music }: YouTubeLyricsPlayerProps) => {
                         <Text size="2" weight="bold">
                           SYNC
                         </Text>
-                        <SyncValue size="2" color="gray">
+                        <Text
+                          className={styles.syncValue}
+                          size="2"
+                          color="gray"
+                        >
                           {lyricsOffset >= 0 ? "+" : ""}
                           {lyricsOffset.toFixed(2)}s
-                        </SyncValue>
+                        </Text>
                       </Flex>
                       <Flex gap="1" wrap="wrap">
                         {OFFSET_STEPS.map((step) => (
@@ -195,32 +146,16 @@ export const YouTubeLyricsPlayer = ({ music }: YouTubeLyricsPlayerProps) => {
                 onTimeUpdate={setCurrentTime}
               />
             ) : (
-              <StatusCard>
+              <Card className={styles.statusCard}>
                 <Text size="2" color="gray">
                   등록된 YouTube 영상이 없습니다.
                 </Text>
-              </StatusCard>
+              </Card>
             )}
           </Flex>
-        </InnerContainer>
+        </Flex>
 
-        {isLoadingTrack && (
-          <StatusCard>
-            <Text size="2" color="gray">
-              가사 파일을 불러오는 중입니다.
-            </Text>
-          </StatusCard>
-        )}
-
-        {loadError && (
-          <StatusCard>
-            <Text size="2" color="red">
-              가사 파일을 불러오지 못했습니다.
-            </Text>
-          </StatusCard>
-        )}
-
-        {!isLoadingTrack && !loadError && track && (
+        {track && (
           <LyricsDisplayV2
             lyrics={track.lyric}
             currentTime={currentTime}
@@ -229,14 +164,14 @@ export const YouTubeLyricsPlayer = ({ music }: YouTubeLyricsPlayerProps) => {
           />
         )}
 
-        {!isLoadingTrack && !loadError && !track && (
-          <StatusCard>
+        {!track && (
+          <Card className={styles.statusCard}>
             <Text size="2" color="gray">
               이 곡의 가사 파일은 아직 준비되지 않았습니다.
             </Text>
-          </StatusCard>
+          </Card>
         )}
       </Flex>
-    </Container>
+    </ScrollArea>
   );
 };

@@ -1,6 +1,3 @@
-import { atom } from "recoil";
+import { atom } from "jotai";
 
-export const sidebarAtom = atom<boolean>({
-  key: "sidebar",
-  default: true,
-});
+export const sidebarAtom = atom(true);

@@ -1,0 +1,31 @@
+.container {
+  width: 100%;
+  height: calc(100dvh - 72px);
+}
+
+.container :global(.rt-ScrollAreaViewport) {
+  line-height: 160%;
+  padding: 64px 24px 24px;
+}
+
+.readerFrame {
+  width: 100%;
+  min-height: 100%;
+}
+
+.novelContainer {
+  width: 100%;
+  min-height: 100%;
+  max-width: 720px;
+  padding: 1rem;
+}
+
+.markdown {
+  padding-bottom: 24px;
+}
+
+@media (max-width: 480px) {
+  .container :global(.rt-ScrollAreaViewport) {
+    padding: 64px 16px 24px;
+  }
+}

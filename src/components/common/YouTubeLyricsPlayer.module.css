@@ -1,0 +1,26 @@
+.container {
+  width: 100%;
+  height: calc(100dvh - 72px);
+}
+
+.container :global(.rt-ScrollAreaViewport) {
+  padding: 64px 24px 24px;
+}
+
+.innerContainer {
+  width: 100%;
+}
+
+.statusCard {
+  background-color: var(--gray-2);
+}
+
+.syncValue {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 480px) {
+  .container :global(.rt-ScrollAreaViewport) {
+    padding: 64px 16px 24px;
+  }
+}

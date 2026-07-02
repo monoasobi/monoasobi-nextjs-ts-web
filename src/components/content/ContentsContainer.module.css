@@ -1,0 +1,68 @@
+.container {
+  position: relative;
+  width: 100%;
+  padding: 8px;
+}
+
+.header {
+  position: absolute;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  width: 95%;
+  align-items: center;
+  justify-content: flex-start;
+  background-color: var(--gray-1);
+  box-shadow: 0 6px 8px -2px var(--black-a1);
+  padding: 12px 56px;
+}
+
+.headerInfo {
+  width: 100%;
+  min-width: 0;
+}
+
+.headerTitle,
+.headerHeading {
+  display: block;
+  max-width: 100%;
+}
+
+.headerButton {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+}
+
+.floatingToggle {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 10;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  background-color: var(--red-9);
+  color: var(--red-contrast);
+  box-shadow: 0 0 24px var(--black-a4);
+}
+
+.floatingToggle:hover {
+  background-color: var(--red-10);
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 12px 44px;
+  }
+
+  .headerButton {
+    right: 12px;
+  }
+
+  .floatingToggle {
+    right: 16px;
+    bottom: 16px;
+  }
+}

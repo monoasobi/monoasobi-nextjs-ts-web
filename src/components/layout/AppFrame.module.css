@@ -1,0 +1,19 @@
+.frame {
+  display: flex;
+  width: 100dvw;
+  min-height: 100dvh;
+  flex-direction: column;
+  background: var(--gray-1);
+}
+
+.body {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.content {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+}

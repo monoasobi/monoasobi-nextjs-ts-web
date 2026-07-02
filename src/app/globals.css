@@ -1,0 +1,75 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-jp-dynamic-subset.min.css");
+
+@font-face {
+  font-family: "KoPub Batang";
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url("/fonts/KoPubBatang-Medium.woff2") format("woff2");
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  font-family:
+    "Pretendard JP Variable", system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-weight: 300;
+  text-rendering: optimizeLegibility;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+html {
+  height: 100%;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  color: var(--foreground);
+  background: var(--background);
+  font-family:
+    "Pretendard JP Variable", system-ui, Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: var(--gray-12, inherit);
+  text-decoration: none;
+}
+
+ul,
+ol,
+li {
+  list-style: none;
+}
+
+.radix-themes:where([data-is-root-theme="true"]) {
+  --default-font-family: "Pretendard JP Variable";
+  min-height: 100dvh;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
+}

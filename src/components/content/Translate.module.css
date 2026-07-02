@@ -1,0 +1,29 @@
+.container {
+  width: 100%;
+  max-width: 1024px;
+  height: calc(100dvh - 72px);
+}
+
+.container :global(.rt-ScrollAreaViewport) {
+  padding: 64px 24px 24px;
+}
+
+.pageFrame {
+  width: 100%;
+  min-height: 100%;
+}
+
+.card {
+  overflow: visible;
+}
+
+.yoasobi {
+  width: 100%;
+  max-width: 360px;
+}
+
+@media (max-width: 480px) {
+  .container :global(.rt-ScrollAreaViewport) {
+    padding: 64px 16px 24px;
+  }
+}

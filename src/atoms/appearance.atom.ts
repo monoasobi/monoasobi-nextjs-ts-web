@@ -1,8 +1,6 @@
-import { localStorageEffect } from "@utils/storageEffect";
-import { atom } from "recoil";
+import { atomWithStorage } from "jotai/utils";
 
-export const appearanceAtom = atom<"light" | "dark">({
-  key: "appearance",
-  default: "light",
-  effects: [localStorageEffect("appearance")],
-});
+export const appearanceAtom = atomWithStorage<"light" | "dark">(
+  "appearance",
+  "light",
+);

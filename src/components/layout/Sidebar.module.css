@@ -1,0 +1,143 @@
+.container {
+  width: 360px;
+  height: calc(100dvh - 56px);
+  flex: 0 0 360px;
+  overflow: hidden;
+  border-right: 1px solid var(--gray-a4);
+  background: var(--gray-2);
+  pointer-events: auto;
+  transition:
+    width 0.18s ease,
+    flex-basis 0.18s ease;
+}
+
+.container[data-open="false"] {
+  width: 0;
+  flex-basis: 0;
+  border-right-width: 0;
+  pointer-events: none;
+}
+
+.scrollArea {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0;
+}
+
+.overlay {
+  display: none;
+}
+
+.item {
+  position: relative;
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  min-height: 64px;
+  grid-template-columns: 72px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  color: var(--gray-12);
+  background: transparent;
+  transition: background-color 0.12s ease;
+}
+
+.item:hover {
+  background: var(--gray-a3);
+}
+
+.item[data-active="true"] {
+  background: var(--red-a3);
+}
+
+.item[data-active="true"]:hover {
+  background: var(--red-a4);
+}
+
+.item[data-tone="active"] {
+  color: var(--red-11);
+}
+
+.item[data-tone="untranslated"] {
+  color: var(--gray-10);
+}
+
+.artwork {
+  width: 72px;
+  aspect-ratio: 1 / 1;
+  border: 1px solid var(--gray-a5);
+  border-radius: 4px;
+  background: var(--gray-3);
+  object-fit: cover;
+}
+
+.itemText {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+  color: inherit;
+}
+
+.itemText > span:not(.textRow) {
+  color: var(--gray-11);
+}
+
+.item[data-active="true"] .itemText > span:not(.textRow) {
+  color: var(--red-10);
+}
+
+.item[data-tone="untranslated"] .itemText > span:not(.textRow) {
+  color: var(--gray-10);
+}
+
+.textRow {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+  gap: 4px;
+}
+
+@media (max-width: 1024px) {
+  .container {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    z-index: 20;
+    width: min(360px, 100dvw);
+    flex-basis: min(360px, 100dvw);
+    transform: translateX(0);
+    transition: transform 0.18s ease;
+  }
+
+  .container[data-open="false"] {
+    width: min(360px, 100dvw);
+    flex-basis: min(360px, 100dvw);
+    transform: translateX(-100%);
+    pointer-events: auto;
+  }
+
+  .overlay[data-open="true"] {
+    position: fixed;
+    inset: 56px 0 0;
+    z-index: 15;
+    display: block;
+    border: 0;
+    background: var(--black-a6);
+    cursor: default;
+  }
+}
+
+@media (max-width: 359px) {
+  .item {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .artwork {
+    display: none;
+  }
+}

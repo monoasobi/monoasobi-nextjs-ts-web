@@ -1,8 +1,8 @@
-import onthestage1 from "@assets/onthestage1.png";
-import onthestage2 from "@assets/onthestage2.png";
-import onthestage3 from "@assets/onthestage3.png";
-import { InformationCircleIcon } from "@heroicons/react/24/outline";
+"use client";
 
+/* eslint-disable @next/next/no-img-element */
+
+import { InformationCircleIcon } from "@heroicons/react/24/outline";
 import {
   Button,
   Callout,
@@ -11,48 +11,14 @@ import {
   Heading,
   ScrollArea,
 } from "@radix-ui/themes";
-import { Link } from "react-router-dom";
-import styled from "styled-components";
-
-const Container = styled(ScrollArea)`
-  width: 100%;
-  height: calc(100dvh - 72px);
-
-  .rt-ScrollAreaViewport {
-    padding: 60px 24px 24px;
-  }
-
-  .card {
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 24px;
-    overflow: visible;
-  }
-
-  @media screen and (max-width: 480px) {
-    .rt-ScrollAreaViewport {
-      padding: 48px 12px 12px;
-    }
-  }
-`;
-
-const PageFrame = styled(Flex)`
-  width: 100%;
-  min-height: 100%;
-`;
-
-const Content = styled(Card)`
-  img {
-    width: clamp(160px, 50%, 320px);
-    aspect-ratio: 1/1;
-  }
-`;
+import Link from "next/link";
+import styles from "./OnTheStage.module.css";
 
 export const OnTheStage = () => {
   return (
-    <Container scrollbars="vertical">
-      <PageFrame direction="column">
-        <Card className="card">
+    <ScrollArea className={styles.container} scrollbars="vertical">
+      <Flex className={styles.pageFrame} direction="column">
+        <Card className={styles.card}>
           <Flex direction="column" gap="4">
             <Callout.Root variant="soft" size="2">
               <Callout.Icon>
@@ -65,91 +31,61 @@ export const OnTheStage = () => {
               </Callout.Text>
             </Callout.Root>
 
-            <Flex direction="column" gap="4" className="desc">
-              <Content variant="surface">
-                <Flex
-                  direction={{ xs: "row", initial: "column" }}
-                  gap="4"
-                  align={{ xs: "end", initial: "center" }}
-                >
-                  <img src={onthestage1} alt="onthestage1" />
-                  <Flex direction="column" gap="4" width="100%">
-                    <Heading
-                      size="6"
-                      weight="bold"
-                      align={{ xs: "left", initial: "center" }}
-                    >
-                      떨어진 두 사람
-                    </Heading>
-                    <Flex direction="column" gap="2" width="100%">
-                      <Button size="3" asChild variant="outline">
-                        <Link to="/comic/1">코믹스</Link>
-                      </Button>
-                      <Button size="3" asChild variant="outline">
-                        <Link to="/novel/26">소설</Link>
-                      </Button>
-                    </Flex>
-                  </Flex>
-                </Flex>
-              </Content>
-
-              <Content variant="surface">
-                <Flex
-                  direction={{ xs: "row", initial: "column" }}
-                  gap="4"
-                  align={{ xs: "end", initial: "center" }}
-                >
-                  <img src={onthestage2} alt="onthestage2" />
-                  <Flex direction="column" gap="4" width="100%">
-                    <Heading
-                      size="6"
-                      weight="bold"
-                      align={{ xs: "left", initial: "center" }}
-                    >
-                      Parallel Lane
-                    </Heading>
-                    <Flex direction="column" gap="2" width="100%">
-                      <Button size="3" asChild variant="outline">
-                        <Link to="/comic/2">코믹스</Link>
-                      </Button>
-                      <Button size="3" asChild variant="outline">
-                        <Link to="/novel/27">소설</Link>
-                      </Button>
-                    </Flex>
-                  </Flex>
-                </Flex>
-              </Content>
-
-              <Content variant="surface">
-                <Flex
-                  direction={{ xs: "row", initial: "column" }}
-                  gap="4"
-                  align={{ xs: "end", initial: "center" }}
-                >
-                  <img src={onthestage3} alt="onthestage3" />
-                  <Flex direction="column" gap="4" width="100%">
-                    <Heading
-                      size="6"
-                      weight="bold"
-                      align={{ xs: "left", initial: "center" }}
-                    >
-                      끝나지 않는 듀스
-                    </Heading>
-                    <Flex direction="column" gap="2" width="100%">
-                      <Button size="3" asChild variant="outline">
-                        <Link to="/comic/3">코믹스</Link>
-                      </Button>
-                      <Button size="3" asChild variant="outline">
-                        <Link to="/novel/28">소설</Link>
-                      </Button>
-                    </Flex>
-                  </Flex>
-                </Flex>
-              </Content>
+            <Flex direction="column" gap="4">
+              <Content
+                image="/images/assets/onthestage1.png"
+                title="떨어진 두 사람"
+                comicHref="/comic/1"
+                novelHref="/novel/26"
+              />
+              <Content
+                image="/images/assets/onthestage2.png"
+                title="Parallel Lane"
+                comicHref="/comic/2"
+                novelHref="/novel/27"
+              />
+              <Content
+                image="/images/assets/onthestage3.png"
+                title="끝나지 않는 듀스"
+                comicHref="/comic/3"
+                novelHref="/novel/28"
+              />
             </Flex>
           </Flex>
         </Card>
-      </PageFrame>
-    </Container>
+      </Flex>
+    </ScrollArea>
   );
 };
+
+interface ContentProps {
+  image: string;
+  title: string;
+  comicHref: string;
+  novelHref: string;
+}
+
+const Content = ({ image, title, comicHref, novelHref }: ContentProps) => (
+  <Card className={styles.content} variant="surface">
+    <Flex
+      direction={{ xs: "row", initial: "column" }}
+      gap="4"
+      align={{ xs: "end", initial: "center" }}
+    >
+      <img src={image} alt={title} />
+      <Flex direction="column" gap="4" width="100%">
+        <Heading size="6" weight="bold" align={{ xs: "left", initial: "center" }}>
+          {title}
+        </Heading>
+        <Flex direction="column" gap="2" width="100%">
+          <Button size="3" asChild variant="outline">
+            <Link href={comicHref}>코믹스</Link>
+          </Button>
+          <Button size="3" asChild variant="outline">
+            <Link href={novelHref}>소설</Link>
+          </Button>
+        </Flex>
+      </Flex>
+    </Flex>
+  </Card>
+);

@@ -1,0 +1,131 @@
+.container {
+  min-height: 0;
+}
+
+.header {
+  padding: 4px 0;
+}
+
+.jumpButtons {
+  min-width: 0;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.jumpButtons::-webkit-scrollbar,
+.scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.icon {
+  display: inline-flex;
+}
+
+.icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.scrollWrapper {
+  position: relative;
+  flex: 1;
+  border: 1px solid var(--red-5);
+  border-radius: var(--radius-4);
+  background-color: var(--red-1);
+}
+
+.scroll {
+  height: 100%;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+.line {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 4px 0;
+  padding: 12px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-3);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.line[data-call-type="LOUD"] {
+  border-color: var(--red-7);
+}
+
+.line[data-call-type="LOUD"] .reading {
+  color: var(--red-11);
+}
+
+.line[data-call-type="CLAP"] {
+  border-color: var(--amber-7);
+}
+
+.line[data-call-type="CLAP"] .reading {
+  color: var(--amber-11);
+}
+
+.line[data-call-type="CUSTOM"] {
+  border-color: var(--teal-7);
+}
+
+.line[data-call-type="CUSTOM"] .reading {
+  color: var(--teal-11);
+}
+
+.line[data-group-pos="first"] {
+  margin-bottom: 0;
+  border-bottom-color: transparent;
+  border-radius: var(--radius-3) var(--radius-3) 0 0;
+}
+
+.line[data-group-pos="middle"] {
+  margin-top: 0;
+  margin-bottom: 0;
+  border-top-color: transparent;
+  border-bottom-color: transparent;
+  border-radius: 0;
+}
+
+.line[data-group-pos="last"] {
+  margin-top: 0;
+  border-top-color: transparent;
+  border-radius: 0 0 var(--radius-3) var(--radius-3);
+}
+
+.line[data-active="true"] {
+  color: var(--red-9);
+}
+
+.line[data-active="true"][data-call-type] {
+  border-color: var(--red-8);
+  box-shadow: var(--shadow-3);
+}
+
+.japanese {
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.reading {
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.korean {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.callGuide {
+  margin-top: 2px;
+}

@@ -1,8 +1,3 @@
-import { localStorageEffect } from "@utils/storageEffect";
-import { atom } from "recoil";
+import { atomWithStorage } from "jotai/utils";
 
-export const fontAtom = atom<"gothic" | "batang">({
-  key: "font",
-  default: "batang",
-  effects: [localStorageEffect("font")],
-});
+export const fontAtom = atomWithStorage<"gothic" | "batang">("font", "batang");

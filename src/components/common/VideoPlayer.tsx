@@ -1,4 +1,6 @@
-import { LyricLine } from "@appTypes/lyric";
+"use client";
+
+import type { LyricLine } from "@appTypes/lyric";
 import {
   PauseIcon,
   PlayIcon,
@@ -15,26 +17,7 @@ import {
   type ChangeEvent,
 } from "react";
 import ReactPlayer from "react-player";
-import {
-  ControlBtn,
-  Controls,
-  IframeWrapper,
-  OverlayJp,
-  OverlayKr,
-  OverlayReading,
-  OverlayToggleBtn,
-  SeekInput,
-  TimeText,
-  VerticalVolumeInput,
-  VideoBlocker,
-  VideoFrame,
-  VideoGradientOverlay,
-  VideoLyricsOverlay,
-  VideoSection,
-  VideoTopControls,
-  VolumeTooltip,
-  VolumeWrapper,
-} from "./VideoPlayer.styles";
+import styles from "./VideoPlayer.module.css";
 
 const YOUTUBE_CONFIG = {
   color: "white" as const,
@@ -64,7 +47,7 @@ const setStoredVolume = (volume: number) => {
 };
 
 const formatTime = (seconds: number): string => {
-  if (!isFinite(seconds) || seconds < 0) return "0:00";
+  if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
   return `${m}:${s.toString().padStart(2, "0")}`;
@@ -178,9 +161,9 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(
     const volumePct = isMuted ? 0 : volume * 100;
 
     return (
-      <VideoSection>
-        <VideoFrame>
-          <IframeWrapper>
+      <div className={styles.videoSection}>
+        <div className={styles.videoFrame}>
+          <div className={styles.iframeWrapper}>
             <ReactPlayer
               ref={setPlayerRef}
               src={`https://www.youtube.com/watch?v=${youtubeId}`}
@@ -196,45 +179,55 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(
               onPause={() => setIsPlaying(false)}
               onEnded={() => setIsPlaying(false)}
             />
-          </IframeWrapper>
-          <VideoBlocker onClick={handleTogglePlay} />
-          <VideoGradientOverlay />
-          <VideoTopControls>
-            <OverlayToggleBtn
+          </div>
+          <div className={styles.videoBlocker} onClick={handleTogglePlay} />
+          <div className={styles.videoGradientOverlay} />
+          <div className={styles.videoTopControls}>
+            <button
+              className={styles.overlayToggleBtn}
               type="button"
-              $active={showJp}
+              data-active={showJp}
               onClick={() => setShowJp((prev) => !prev)}
             >
               일어
-            </OverlayToggleBtn>
-            <OverlayToggleBtn
+            </button>
+            <button
+              className={styles.overlayToggleBtn}
               type="button"
-              $active={showReading}
+              data-active={showReading}
               onClick={() => setShowReading((prev) => !prev)}
             >
               발음
-            </OverlayToggleBtn>
-          </VideoTopControls>
+            </button>
+          </div>
           {activeLine && (
-            <VideoLyricsOverlay>
-              {showJp && activeLine.jp && <OverlayJp>{activeLine.jp}</OverlayJp>}
-              {showReading && activeLine.jpReading && (
-                <OverlayReading>{activeLine.jpReading}</OverlayReading>
+            <div className={styles.videoLyricsOverlay}>
+              {showJp && activeLine.jp && (
+                <p className={styles.overlayJp}>{activeLine.jp}</p>
               )}
-              {activeLine.kr && <OverlayKr>{activeLine.kr}</OverlayKr>}
-            </VideoLyricsOverlay>
+              {showReading && activeLine.jpReading && (
+                <p className={styles.overlayReading}>
+                  {activeLine.jpReading}
+                </p>
+              )}
+              {activeLine.kr && (
+                <p className={styles.overlayKr}>{activeLine.kr}</p>
+              )}
+            </div>
           )}
-        </VideoFrame>
-        <Controls>
-          <ControlBtn
+        </div>
+        <div className={styles.controls}>
+          <button
+            className={styles.controlBtn}
             type="button"
             onClick={handleTogglePlay}
             aria-label={isPlaying ? "일시정지" : "재생"}
           >
             {isPlaying ? <PauseIcon /> : <PlayIcon />}
-          </ControlBtn>
-          <TimeText>{formatTime(currentTime)}</TimeText>
-          <SeekInput
+          </button>
+          <span className={styles.timeText}>{formatTime(currentTime)}</span>
+          <input
+            className={styles.seekInput}
             type="range"
             min={0}
             max={duration || 0}
@@ -245,9 +238,10 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(
               backgroundImage: `linear-gradient(to right, var(--red-9) ${seekPct.toFixed(1)}%, rgba(255,255,255,0.15) ${seekPct.toFixed(1)}%)`,
             }}
           />
-          <TimeText>{formatTime(duration)}</TimeText>
-          <VolumeWrapper ref={volumeWrapperRef}>
-            <ControlBtn
+          <span className={styles.timeText}>{formatTime(duration)}</span>
+          <div className={styles.volumeWrapper} ref={volumeWrapperRef}>
+            <button
+              className={styles.controlBtn}
               type="button"
               onClick={handleVolumeButtonClick}
               aria-label="볼륨 조절"
@@ -257,9 +251,13 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(
               ) : (
                 <SpeakerWaveIcon />
               )}
-            </ControlBtn>
-            <VolumeTooltip $show={showVolumeTooltip}>
-              <VerticalVolumeInput
+            </button>
+            <div
+              className={styles.volumeTooltip}
+              data-show={showVolumeTooltip}
+            >
+              <input
+                className={styles.verticalVolumeInput}
                 type="range"
                 min={0}
                 max={1}
@@ -270,10 +268,10 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(
                   backgroundImage: `linear-gradient(to right, var(--red-9) ${volumePct.toFixed(1)}%, rgba(255,255,255,0.15) ${volumePct.toFixed(1)}%)`,
                 }}
               />
-            </VolumeTooltip>
-          </VolumeWrapper>
-        </Controls>
-      </VideoSection>
+            </div>
+          </div>
+        </div>
+      </div>
     );
   },
 );

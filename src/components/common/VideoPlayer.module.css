@@ -1,0 +1,256 @@
+.videoSection {
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-4);
+  background-color: #000;
+  container-type: inline-size;
+}
+
+.videoFrame {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+}
+
+.iframeWrapper {
+  position: absolute;
+  inset: 0;
+  aspect-ratio: 1 / 1;
+  transform: translateY(-21.875%);
+}
+
+.videoBlocker {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  cursor: pointer;
+}
+
+.videoGradientOverlay {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  height: 42%;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.08) 28%,
+    rgba(0, 0, 0, 0.38) 70%,
+    rgba(0, 0, 0, 0.72) 100%
+  );
+  pointer-events: none;
+}
+
+.videoTopControls {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 4;
+  display: flex;
+  gap: 4px;
+  pointer-events: auto;
+}
+
+.overlayToggleBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.5);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.overlayToggleBtn[data-active="true"] {
+  border-color: var(--red-8);
+  background: var(--red-a4);
+  color: var(--red-9);
+}
+
+.videoLyricsOverlay {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 0 16px 12px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.overlayJp,
+.overlayReading {
+  font-size: clamp(12px, 1.8cqw, 14px);
+  font-style: italic;
+  font-weight: 700;
+  line-height: 1.2;
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.9);
+}
+
+.overlayJp {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.overlayReading {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.overlayKr {
+  color: #fff;
+  font-size: clamp(16px, 3cqw, 22px);
+  font-weight: 700;
+  line-height: 1.2;
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.9);
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background-color: #111;
+}
+
+.controlBtn {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius-2);
+  background: none;
+  color: #e0e0e0;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.controlBtn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.controlBtn:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.timeText {
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.seekInput,
+.verticalVolumeInput {
+  height: 20px;
+  border-radius: 999px;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 4px;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+}
+
+.seekInput {
+  flex: 1;
+}
+
+.seekInput::-webkit-slider-runnable-track,
+.verticalVolumeInput::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.seekInput::-webkit-slider-thumb,
+.verticalVolumeInput::-webkit-slider-thumb {
+  width: 12px;
+  height: 12px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background: var(--red-9);
+  appearance: none;
+}
+
+.seekInput::-moz-range-track,
+.verticalVolumeInput::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.seekInput::-moz-range-progress,
+.verticalVolumeInput::-moz-range-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--red-9);
+}
+
+.seekInput::-moz-range-thumb,
+.verticalVolumeInput::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: none;
+  border-radius: 50%;
+  background: var(--red-9);
+}
+
+.volumeWrapper {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.volumeTooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 100px;
+  padding: 10px 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-3);
+  background: rgba(18, 18, 18, 0.96);
+  box-shadow: var(--shadow-5);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%);
+  transition: opacity 0.15s;
+}
+
+.volumeTooltip[data-show="true"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.verticalVolumeInput {
+  width: 76px;
+  touch-action: none;
+  transform: rotate(-90deg);
+}
