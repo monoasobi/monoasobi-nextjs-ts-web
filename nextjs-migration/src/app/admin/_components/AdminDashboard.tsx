@@ -11,7 +11,7 @@ import {
 } from "@radix-ui/themes";
 import { useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { AdminDocumentPanel } from "./AdminDocumentPanel";
 import styles from "./AdminPage.module.css";
 
@@ -45,27 +45,23 @@ export const AdminDashboard = ({ data }: AdminDashboardProps) => {
     () => new Set(data.musics[0] ? [data.musics[0].id] : []),
   );
 
-  const tree = useMemo(() => {
-    const novelsByMusicId = new Map<number, typeof data.novels>();
-    const comicsByMusicId = new Map<number, typeof data.comics>();
-    const lyricByMusicId = new Map(
-      data.lyricTracks.map((track) => [track.musicId, track]),
-    );
+  const novelsByMusicId = new Map<number, typeof data.novels>();
+  const comicsByMusicId = new Map<number, typeof data.comics>();
+  const lyricByMusicId = new Map(
+    data.lyricTracks.map((track) => [track.musicId, track]),
+  );
 
-    for (const novel of data.novels) {
-      const novels = novelsByMusicId.get(novel.musicId) ?? [];
-      novels.push(novel);
-      novelsByMusicId.set(novel.musicId, novels);
-    }
+  for (const novel of data.novels) {
+    const novels = novelsByMusicId.get(novel.musicId) ?? [];
+    novels.push(novel);
+    novelsByMusicId.set(novel.musicId, novels);
+  }
 
-    for (const comic of data.comics) {
-      const comics = comicsByMusicId.get(comic.musicId) ?? [];
-      comics.push(comic);
-      comicsByMusicId.set(comic.musicId, comics);
-    }
-
-    return { novelsByMusicId, comicsByMusicId, lyricByMusicId };
-  }, [data]);
+  for (const comic of data.comics) {
+    const comics = comicsByMusicId.get(comic.musicId) ?? [];
+    comics.push(comic);
+    comicsByMusicId.set(comic.musicId, comics);
+  }
 
   const handleLogout = async () => {
     await fetch("/api/admin/auth/logout", { method: "POST" });
@@ -123,9 +119,9 @@ export const AdminDashboard = ({ data }: AdminDashboardProps) => {
                 }
               >
                 {data.musics.map((music) => {
-                  const novels = tree.novelsByMusicId.get(music.id) ?? [];
-                  const comics = tree.comicsByMusicId.get(music.id) ?? [];
-                  const lyricTrack = tree.lyricByMusicId.get(music.id);
+                  const novels = novelsByMusicId.get(music.id) ?? [];
+                  const comics = comicsByMusicId.get(music.id) ?? [];
+                  const lyricTrack = lyricByMusicId.get(music.id);
                   const isExpanded = expandedMusicIds.has(music.id);
 
                   return (
