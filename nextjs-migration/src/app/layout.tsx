@@ -1,8 +1,8 @@
-import type { Metadata, Viewport } from "next";
-import "@radix-ui/themes/styles.css";
-import "./globals.css";
 import { AppFrame } from "@components/layout/AppFrame";
-import { createPageMetadata, metadataBase, THEME_COLOR } from "@lib/metadata";
+import { THEME_COLOR, createPageMetadata, metadataBase } from "@lib/metadata";
+import "@radix-ui/themes/styles.css";
+import type { Metadata, Viewport } from "next";
+import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {

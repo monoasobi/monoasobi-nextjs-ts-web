@@ -4,7 +4,7 @@ import { appearanceAtom } from "@atoms/appearance.atom";
 import { privateReaderAtom } from "@atoms/privateReader.atom";
 import { sidebarAtom } from "@atoms/sidebar.atom";
 import { Theme } from "@radix-ui/themes";
-import { Analytics } from "@vercel/analytics/react";
+import { Analytics } from "@vercel/analytics/next";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useEffect } from "react";
 
