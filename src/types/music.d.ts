@@ -4,5 +4,5 @@ export interface Music {
   enTitle: string;
   title: string;
   specialPath?: string;
-  youtubeId: string;
+  youtubeId?: string;
 }

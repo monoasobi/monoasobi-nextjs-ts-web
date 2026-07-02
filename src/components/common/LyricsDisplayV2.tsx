@@ -1,21 +1,12 @@
-import { CallType, LyricLine } from "@appTypes/lyric";
+"use client";
+
+import type { CallType, LyricLine } from "@appTypes/lyric";
 import { HandRaisedIcon, MicrophoneIcon } from "@heroicons/react/24/solid";
-import { Badge, Button } from "@radix-ui/themes";
+import { Badge, Button, Flex, Text } from "@radix-ui/themes";
 import { useMemo, useRef } from "react";
-import {
-  CallGuide,
-  Container,
-  Header,
-  Icon,
-  Japanese,
-  JumpButtons,
-  Korean,
-  Line,
-  Reading,
-  Scroll,
-  ScrollWrapper,
-  type GroupPos,
-} from "./LyricsDisplayV2.styles";
+import styles from "./LyricsDisplayV2.module.css";
+
+type GroupPos = "solo" | "first" | "middle" | "last";
 
 const TYPE_LABELS: Record<CallType, string> = {
   LOUD: "떼창",
@@ -89,9 +80,9 @@ export const LyricsDisplayV2 = ({
   };
 
   return (
-    <Container direction="column" gap="2" flexGrow="1">
-      <Header align="center" gap="2">
-        <JumpButtons align="center" gap="1">
+    <Flex className={styles.container} direction="column" gap="2" flexGrow="1">
+      <Flex className={styles.header} align="center" gap="2">
+        <Flex className={styles.jumpButtons} align="center" gap="1">
           {callGroupStarts.map((group, index) => (
             <Button
               key={`${group.type}-${group.startTime}-${index}`}
@@ -101,28 +92,28 @@ export const LyricsDisplayV2 = ({
               color={group.type === "CLAP" ? "amber" : "red"}
               onClick={() => handleJump(group.startTime, group.index)}
             >
-              <Icon>
+              <span className={styles.icon}>
                 {group.type === "CLAP" ? (
                   <HandRaisedIcon />
                 ) : (
                   <MicrophoneIcon />
                 )}
-              </Icon>
+              </span>
               {group.label} {index + 1}
             </Button>
           ))}
-        </JumpButtons>
-      </Header>
+        </Flex>
+      </Flex>
 
-      <ScrollWrapper>
-        <Scroll>
+      <div className={styles.scrollWrapper}>
+        <div className={styles.scroll}>
           {lyrics.map((line, index) => {
             const isActive = index === activeIndex;
             const groupPos = getGroupPos(lyrics, index);
             const isGroupStart = groupPos === "solo" || groupPos === "first";
 
             return (
-              <Line
+              <div
                 key={`${line.start}-${index}`}
                 ref={(element) => {
                   if (element) {
@@ -131,9 +122,10 @@ export const LyricsDisplayV2 = ({
                     lineRefs.current.delete(index);
                   }
                 }}
-                $active={isActive}
-                $callType={line.callType}
-                $groupPos={groupPos}
+                className={styles.line}
+                data-active={isActive}
+                data-call-type={line.callType ?? undefined}
+                data-group-pos={groupPos ?? undefined}
                 onClick={() => onSeek(line.start - offset)}
               >
                 {line.callType && (isActive || isGroupStart) && (
@@ -141,19 +133,19 @@ export const LyricsDisplayV2 = ({
                     {line.callGuide || TYPE_LABELS[line.callType]}
                   </Badge>
                 )}
-                <Japanese>{line.jp}</Japanese>
-                <Reading>{line.jpReading}</Reading>
-                <Korean>{line.kr}</Korean>
+                <p className={styles.japanese}>{line.jp}</p>
+                <p className={styles.reading}>{line.jpReading}</p>
+                <p className={styles.korean}>{line.kr}</p>
                 {line.callGuide && line.callType === "CUSTOM" && (
-                  <CallGuide as="p" size="1" color="gray">
+                  <Text as="p" className={styles.callGuide} size="1" color="gray">
                     {line.callGuide}
-                  </CallGuide>
+                  </Text>
                 )}
-              </Line>
+              </div>
             );
           })}
-        </Scroll>
-      </ScrollWrapper>
-    </Container>
+        </div>
+      </div>
+    </Flex>
   );
 };

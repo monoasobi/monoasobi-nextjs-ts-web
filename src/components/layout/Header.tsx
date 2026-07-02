@@ -1,4 +1,5 @@
-import logo from "@assets/logo.svg";
+"use client";
+
 import { appearanceAtom } from "@atoms/appearance.atom";
 import { fontAtom } from "@atoms/font.atom";
 import { sidebarAtom } from "@atoms/sidebar.atom";
@@ -13,51 +14,41 @@ import {
   Text,
 } from "@radix-ui/themes";
 import { useAtom, useSetAtom } from "jotai";
-import { MouseEventHandler } from "react";
-import { Link } from "react-router-dom";
-
-import styled from "styled-components";
-
-const Container = styled(Flex)`
-  width: 100%;
-  padding: 10px 16px;
-  height: 56px;
-  background-color: var(--gray-1);
-
-  .logo {
-    width: 120px;
-  }
-`;
-
-const ButtonText = styled(Text)<{ $font?: "gothic" | "batang" }>`
-  font-weight: 700;
-  font-family: ${({ $font }) =>
-    $font === "batang" ? '"KoPub Batang"' : '"Pretendard JP Variable"'};
-`;
+import Link from "next/link";
+import type { MouseEventHandler } from "react";
+import styles from "./Header.module.css";
 
 export const Header = () => {
   const [appearance, setAppearance] = useAtom(appearanceAtom);
   const [font, setFont] = useAtom(fontAtom);
   const setIsSidebar = useSetAtom(sidebarAtom);
 
-  const sidebarHAndler: MouseEventHandler<HTMLButtonElement> = (event) => {
+  const sidebarHandler: MouseEventHandler<HTMLButtonElement> = (event) => {
     event.stopPropagation();
     setIsSidebar((prev) => !prev);
   };
 
   return (
-    <Container justify="between" align="center">
-      <IconButton onClick={sidebarHAndler} variant="ghost">
+    <header className={styles.header}>
+      <IconButton
+        type="button"
+        onClick={sidebarHandler}
+        variant="ghost"
+        aria-label="사이드바 열기"
+      >
         <Bars3Icon width={24} />
       </IconButton>
-      <Link to="/">
-        <Button asChild variant="ghost">
-          <img src={logo} alt="logo" className="logo" />
-        </Button>
-      </Link>
+
+      <Button asChild variant="ghost" className={styles.logoButton}>
+        <Link href="/" aria-label="monoasobi 홈">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/assets/logo.svg" alt="monoasobi" className={styles.logo} />
+        </Link>
+      </Button>
+
       <Popover.Root>
         <Popover.Trigger>
-          <IconButton variant="ghost">
+          <IconButton type="button" variant="ghost" aria-label="설정">
             <Cog6ToothIcon width={24} />
           </IconButton>
         </Popover.Trigger>
@@ -70,37 +61,42 @@ export const Header = () => {
               <SegmentedControl.Root
                 variant="classic"
                 value={appearance}
-                onValueChange={(v) => setAppearance(v as "light" | "dark")}
+                onValueChange={(value) =>
+                  setAppearance(value as "light" | "dark")
+                }
                 size="1"
               >
                 <SegmentedControl.Item value="light">
-                  <ButtonText>라이트</ButtonText>
+                  <Text weight="bold">라이트</Text>
                 </SegmentedControl.Item>
                 <SegmentedControl.Item value="dark">
-                  <ButtonText>다크</ButtonText>
+                  <Text weight="bold">다크</Text>
                 </SegmentedControl.Item>
               </SegmentedControl.Root>
             </Flex>
+
             <Flex direction="column" gap="2">
               <Text size="1" weight="bold" color="gray">
                 폰트
               </Text>
               <SegmentedControl.Root
                 value={font}
-                onValueChange={(v) => setFont(v as "gothic" | "batang")}
+                onValueChange={(value) => setFont(value as "gothic" | "batang")}
                 size="1"
               >
                 <SegmentedControl.Item value="gothic">
-                  <ButtonText>Pretendard</ButtonText>
+                  <Text weight="bold">Pretendard</Text>
                 </SegmentedControl.Item>
-                <SegmentedControl.Item className="batang" value="batang">
-                  <ButtonText $font="batang">Kopub 바탕</ButtonText>
+                <SegmentedControl.Item value="batang">
+                  <Text weight="bold" className={styles.batangText}>
+                    Kopub 바탕
+                  </Text>
                 </SegmentedControl.Item>
               </SegmentedControl.Root>
             </Flex>
           </Flex>
         </Popover.Content>
       </Popover.Root>
-    </Container>
+    </header>
   );
 };
