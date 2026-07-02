@@ -1,6 +1,13 @@
 "use client";
 
-import type { AdminDashboardData, SelectedNode } from "./AdminDashboard";
+import {
+  CheckIcon,
+  ExclamationTriangleIcon,
+  MusicalNoteIcon,
+  PencilSquareIcon,
+  TrashIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 import {
   AlertDialog,
   Badge,
@@ -18,15 +25,10 @@ import {
   TextField,
   Tooltip,
 } from "@radix-ui/themes";
-import {
-  CheckIcon,
-  ExclamationTriangleIcon,
-  PencilSquareIcon,
-  TrashIcon,
-  XMarkIcon,
-} from "@heroicons/react/24/outline";
+import Link from "next/link";
 import type { FormEvent } from "react";
 import { useState } from "react";
+import type { AdminDashboardData, SelectedNode } from "./AdminDashboard";
 import styles from "./AdminPage.module.css";
 
 interface AdminDocumentPanelProps {
@@ -161,6 +163,16 @@ export const AdminDocumentPanel = ({
         </Flex>
         <Flex align="center" gap="2" className={styles.documentActions}>
           <Badge variant="outline">{selectedDocument.collection}</Badge>
+          {selectedNode.type === "lyric" && (
+            <Tooltip content="Timeline 편집">
+              <Button asChild size="1" variant="soft">
+                <Link href={`/admin/lyrics/${selectedNode.id}/timeline`}>
+                  <MusicalNoteIcon width="14" height="14" />
+                  Timeline
+                </Link>
+              </Button>
+            </Tooltip>
+          )}
           {config && isEditing ? (
             <>
               <Separator orientation="vertical" decorative />
@@ -457,6 +469,7 @@ const EditorField = ({
       type={field.type}
       defaultValue={field.defaultValue ?? ""}
       required={field.required}
+      step={field.type === "number" ? "any" : undefined}
     />
   );
 };

@@ -1,4 +1,5 @@
 import { db } from "@/server/db";
+import type { LyricLine } from "@appTypes/lyric";
 
 export const getAdminDashboard = async () => {
   const [musics, novels, comics, books, lyricTracks] = await Promise.all([
@@ -46,5 +47,33 @@ export const getAdminDashboard = async () => {
       lineCount: Array.isArray(track.lyricJson) ? track.lyricJson.length : 0,
       lyricJson: track.lyricJson,
     })),
+  };
+};
+
+export const getAdminLyricTimeline = async (musicId: number) => {
+  const music = await db.query.musics.findFirst({
+    where: (musics, { eq }) => eq(musics.id, musicId),
+    with: {
+      lyricTrack: true,
+    },
+  });
+
+  if (!music) return null;
+
+  return {
+    music: {
+      id: music.id,
+      title: music.title,
+      korTitle: music.korTitle,
+      enTitle: music.enTitle,
+      youtubeId: music.youtubeId ?? undefined,
+    },
+    lyricTrack: music.lyricTrack
+      ? {
+          musicId: music.lyricTrack.musicId,
+          sync: music.lyricTrack.sync,
+          lyricJson: music.lyricTrack.lyricJson as LyricLine[],
+        }
+      : null,
   };
 };

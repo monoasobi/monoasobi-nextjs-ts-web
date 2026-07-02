@@ -1,6 +1,6 @@
 import {
   parseAdminPayload,
-  parsePositiveId,
+  parseNonNegativeId,
   requireAdminSession,
 } from "@/app/api/admin/_utils";
 import {
@@ -24,7 +24,7 @@ export const PUT = async (
   if (unauthorized) return unauthorized;
 
   const { musicId: rawMusicId } = await context.params;
-  const { id: musicId, response: idError } = parsePositiveId(
+  const { id: musicId, response: idError } = parseNonNegativeId(
     rawMusicId,
     "music",
   );
@@ -56,7 +56,7 @@ export const DELETE = async (
   if (unauthorized) return unauthorized;
 
   const { musicId: rawMusicId } = await context.params;
-  const { id: musicId, response: idError } = parsePositiveId(
+  const { id: musicId, response: idError } = parseNonNegativeId(
     rawMusicId,
     "music",
   );

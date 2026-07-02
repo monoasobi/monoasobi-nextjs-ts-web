@@ -1,6 +1,6 @@
 import {
   parseAdminPayload,
-  parsePositiveId,
+  parseNonNegativeId,
   requireAdminSession,
 } from "@/app/api/admin/_utils";
 import { deleteMusic, updateMusic } from "@/server/mutations/admin";
@@ -21,7 +21,7 @@ export const PUT = async (
   if (unauthorized) return unauthorized;
 
   const { id: rawId } = await context.params;
-  const { id, response: idError } = parsePositiveId(rawId, "music");
+  const { id, response: idError } = parseNonNegativeId(rawId, "music");
   if (idError) return idError;
 
   const { data, response: payloadError } = await parseAdminPayload(
@@ -47,7 +47,7 @@ export const DELETE = async (
   if (unauthorized) return unauthorized;
 
   const { id: rawId } = await context.params;
-  const { id, response: idError } = parsePositiveId(rawId, "music");
+  const { id, response: idError } = parseNonNegativeId(rawId, "music");
   if (idError) return idError;
 
   const deleted = await deleteMusic(id);

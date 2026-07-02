@@ -27,6 +27,8 @@ const optionalId = z
   .optional()
   .transform((value) => value ?? null);
 
+const musicId = z.coerce.number().int().nonnegative();
+
 export const musicSchema = z.object({
   title: requiredText,
   korTitle: requiredText,
@@ -37,7 +39,7 @@ export const musicSchema = z.object({
 
 export const novelSchema = z
   .object({
-    musicId: z.coerce.number().int().positive(),
+    musicId,
     bookId: optionalId,
     title: requiredText,
     writer: requiredText,
@@ -74,7 +76,7 @@ export const novelSchema = z
   });
 
 export const comicSchema = z.object({
-  musicId: z.coerce.number().int().positive(),
+  musicId,
   title: requiredText,
   writer: requiredText,
   originUrl: requiredUrl,
@@ -83,10 +85,25 @@ export const comicSchema = z.object({
   length: z.coerce.number().int().min(1),
 });
 
+export const lyricLineSchema = z
+  .object({
+    start: z.number().nonnegative(),
+    end: z.number().positive(),
+    jp: z.string(),
+    kr: z.string(),
+    jpReading: z.string(),
+    callType: z.enum(["LOUD", "CLAP", "CUSTOM"]).optional(),
+    callGuide: z.string().optional(),
+  })
+  .refine((line) => line.end > line.start, {
+    message: "end는 start보다 커야 합니다.",
+    path: ["end"],
+  });
+
 export const lyricTrackSchema = z.object({
-  musicId: z.coerce.number().int().positive(),
+  musicId,
   sync: z.coerce.number(),
-  lyricJson: z.unknown(),
+  lyricJson: z.array(lyricLineSchema),
 });
 
 export const bookSchema = z.object({

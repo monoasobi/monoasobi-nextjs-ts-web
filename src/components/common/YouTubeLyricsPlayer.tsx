@@ -32,14 +32,14 @@ export const YouTubeLyricsPlayer = ({
   const [lyricsOffset, setLyricsOffset] = useState(track?.sync ?? 0);
   const [currentTime, setCurrentTime] = useState(0);
 
-  const adjustedTime = currentTime + lyricsOffset;
-
   const activeLine = useMemo(
     () =>
       track?.lyric.find(
-        (line) => adjustedTime >= line.start && adjustedTime < line.end,
+        (line) =>
+          currentTime >= line.start + lyricsOffset &&
+          currentTime < line.end + lyricsOffset,
       ) ?? null,
-    [adjustedTime, track],
+    [currentTime, lyricsOffset, track],
   );
 
   const handleSeek = (time: number) => {

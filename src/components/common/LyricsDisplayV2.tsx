@@ -41,15 +41,16 @@ export const LyricsDisplayV2 = ({
   offset,
   onSeek,
 }: LyricsDisplayV2Props) => {
-  const adjustedTime = currentTime + offset;
   const lineRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
   const activeIndex = useMemo(
     () =>
       lyrics.findIndex(
-        (line) => adjustedTime >= line.start && adjustedTime < line.end,
+        (line) =>
+          currentTime >= line.start + offset &&
+          currentTime < line.end + offset,
       ),
-    [adjustedTime, lyrics],
+    [currentTime, lyrics, offset],
   );
 
   const callGroupStarts = useMemo(
@@ -63,17 +64,17 @@ export const LyricsDisplayV2 = ({
         return [
           {
             index,
-            startTime: line.start,
+            startTime: line.start + offset,
             type: line.callType,
             label: line.callGuide || TYPE_LABELS[line.callType],
           },
         ];
       }),
-    [lyrics],
+    [lyrics, offset],
   );
 
   const handleJump = (time: number, index: number) => {
-    onSeek(time - offset);
+    onSeek(time);
     lineRefs.current
       .get(index)
       ?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -126,7 +127,7 @@ export const LyricsDisplayV2 = ({
                 data-active={isActive}
                 data-call-type={line.callType ?? undefined}
                 data-group-pos={groupPos ?? undefined}
-                onClick={() => onSeek(line.start - offset)}
+                onClick={() => onSeek(line.start + offset)}
               >
                 {line.callType && (isActive || isGroupStart) && (
                   <Badge color={line.callType === "CLAP" ? "amber" : "red"}>

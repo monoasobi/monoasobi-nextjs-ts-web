@@ -48,3 +48,19 @@ export const parsePositiveId = (value: string, label: string) => {
 
   return { id, response: null };
 };
+
+export const parseNonNegativeId = (value: string, label: string) => {
+  const id = Number(value);
+
+  if (!Number.isInteger(id) || id < 0) {
+    return {
+      id: null,
+      response: NextResponse.json(
+        { error: `Invalid ${label} id` },
+        { status: 400 },
+      ),
+    };
+  }
+
+  return { id, response: null };
+};
