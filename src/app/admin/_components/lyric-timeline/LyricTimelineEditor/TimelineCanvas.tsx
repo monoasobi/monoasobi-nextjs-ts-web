@@ -14,6 +14,7 @@ import type { TimelineEdge } from "./useTimelineResize";
 
 interface TimelineCanvasProps {
   activeLineIndex: number;
+  canManage: boolean;
   currentTime: number;
   draftLyrics: LyricLine[];
   draftSync: number;
@@ -39,6 +40,7 @@ interface TimelineCanvasProps {
 
 export const TimelineCanvas = ({
   activeLineIndex,
+  canManage,
   currentTime,
   draftLyrics,
   draftSync,
@@ -98,6 +100,7 @@ export const TimelineCanvas = ({
                   key={`${line.start}-${line.end}-${index}`}
                   displayStart={displayStart}
                   index={index}
+                  canManage={canManage}
                   isActive={activeLineIndex === index}
                   isEditing={editingLineIndex === index}
                   isSelected={selectedLineIndex === index}

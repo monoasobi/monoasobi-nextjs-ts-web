@@ -1,5 +1,6 @@
 "use client";
 
+import type { AdminRole } from "@appTypes/admin";
 import {
   CheckIcon,
   MusicalNoteIcon,
@@ -39,19 +40,24 @@ import styles from "./AdminPage.module.css";
 
 interface AdminDocumentPanelProps {
   data: AdminDashboardData;
+  role: AdminRole;
   selectedNode: SelectedNode;
   onSaved: () => void;
 }
 
 export const AdminDocumentPanel = ({
   data,
+  role,
   selectedNode,
   onSaved,
 }: AdminDocumentPanelProps) => {
+  const canManage = role === "admin";
   const selectedDocument = getSelectedDocument(data, selectedNode);
   const config = getEditorConfig(data, selectedNode);
   const isNewDocument = config?.method === "POST";
-  const [isEditing, setIsEditing] = useState(Boolean(isNewDocument));
+  const [isEditing, setIsEditing] = useState(
+    Boolean(isNewDocument && canManage),
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<AdminMessage | null>(null);
   const [visibilityFlags, setVisibilityFlags] = useState<
@@ -72,6 +78,8 @@ export const AdminDocumentPanel = ({
     config: EditorConfig,
   ) => {
     event.preventDefault();
+    if (!canManage) return;
+
     setIsSaving(true);
     setMessage(null);
 
@@ -116,7 +124,7 @@ export const AdminDocumentPanel = ({
   };
 
   const handleDelete = async (config: EditorConfig) => {
-    if (!config.deleteEndpoint) return;
+    if (!canManage || !config.deleteEndpoint) return;
 
     setIsSaving(true);
     setMessage(null);
@@ -150,7 +158,7 @@ export const AdminDocumentPanel = ({
           </Text>
           <div className={styles.documentTitleRow}>
             <Heading size="4">{selectedDocument.title}</Heading>
-            {config && isEditing && config.deleteEndpoint && (
+            {canManage && config && isEditing && config.deleteEndpoint && (
               <DeleteDialog
                 disabled={isSaving}
                 title={selectedDocument.title}
@@ -172,7 +180,7 @@ export const AdminDocumentPanel = ({
               </Button>
             </Tooltip>
           )}
-          {config && isEditing ? (
+          {canManage && config && isEditing ? (
             <>
               <Separator orientation="vertical" decorative />
               <div className={styles.actionGroup}>
@@ -203,6 +211,7 @@ export const AdminDocumentPanel = ({
               </div>
             </>
           ) : (
+            canManage &&
             config && (
               <Tooltip content={isNewDocument ? "작성" : "수정"}>
                 <IconButton

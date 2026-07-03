@@ -1,5 +1,6 @@
 "use client";
 
+import type { AdminRole } from "@appTypes/admin";
 import type { LyricLine } from "@appTypes/lyric";
 import type { Music } from "@appTypes/music";
 import { Callout } from "@radix-ui/themes";
@@ -44,13 +45,16 @@ interface LyricTimelineEditorProps {
     sync: number;
     lyricJson: LyricLine[];
   };
+  role: AdminRole;
 }
 
 export const LyricTimelineEditor = ({
   music,
   lyricTrack,
+  role,
 }: LyricTimelineEditorProps) => {
   const router = useRouter();
+  const canManage = role === "admin";
   const previewRef = useRef<TimelineYouTubePreviewHandle>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
   const [draftLyrics, setDraftLyrics] = useState(() =>
@@ -101,6 +105,8 @@ export const LyricTimelineEditor = ({
     activeLineIndex >= 0 ? (draftLyrics[activeLineIndex] ?? null) : null;
 
   const updateLine = (index: number, patch: Partial<LyricLine>) => {
+    if (!canManage) return;
+
     setDraftLyrics((prev) =>
       prev.map((line, lineIndex) =>
         lineIndex === index ? { ...line, ...patch } : line,
@@ -149,7 +155,9 @@ export const LyricTimelineEditor = ({
   };
 
   const exportSrt = (exportConfig: SrtExportConfig) => {
-    const normalizedLyrics = getNormalizedLyrics(draftLyrics);
+    const normalizedLyrics = getNormalizedLyrics(
+      canManage ? draftLyrics : lyricTrack.lyricJson,
+    );
     const srt = buildSrt(normalizedLyrics, exportConfig.key);
     const filenameBase = `${music.id}_${sanitizeFilePart(music.korTitle || music.title)}`;
 
@@ -157,6 +165,8 @@ export const LyricTimelineEditor = ({
   };
 
   const save = async () => {
+    if (!canManage) return;
+
     setIsSaving(true);
     setMessage(null);
 
@@ -212,6 +222,7 @@ export const LyricTimelineEditor = ({
           previewRef={previewRef}
           draftSync={draftSync}
           dirty={dirty}
+          canManage={canManage}
           isSaving={isSaving}
           message={message}
           onTimeUpdate={setCurrentTime}
@@ -244,6 +255,7 @@ export const LyricTimelineEditor = ({
           onRulerClick={handleRulerClick}
           onSelectLine={setSelectedLineIndex}
           onUpdateLine={updateLine}
+          canManage={canManage}
           onWheel={handleWheel}
         />
       </div>

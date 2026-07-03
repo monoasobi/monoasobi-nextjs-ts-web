@@ -232,6 +232,10 @@
   outline-offset: 2px;
 }
 
+.block[data-can-manage="false"] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .blockText {
   display: grid;
   align-content: center;

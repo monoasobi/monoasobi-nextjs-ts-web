@@ -22,6 +22,7 @@ interface TimelineSidePanelProps {
   previewRef: RefObject<TimelineYouTubePreviewHandle | null>;
   draftSync: number;
   dirty: boolean;
+  canManage: boolean;
   isSaving: boolean;
   message: { tone: "success" | "error"; text: string } | null;
   onTimeUpdate: (time: number) => void;
@@ -38,6 +39,7 @@ export const TimelineSidePanel = ({
   previewRef,
   draftSync,
   dirty,
+  canManage,
   isSaving,
   message,
   onTimeUpdate,
@@ -65,7 +67,10 @@ export const TimelineSidePanel = ({
           type="number"
           step="0.01"
           value={draftSync}
+          disabled={!canManage}
           onChange={(event) => {
+            if (!canManage) return;
+
             const value = Number(event.target.value);
             if (Number.isFinite(value)) onSyncChange(roundTime(value));
           }}
@@ -79,6 +84,7 @@ export const TimelineSidePanel = ({
             size="1"
             variant="soft"
             color="gray"
+            disabled={!canManage}
             onClick={() => onSyncChange(roundTime(draftSync + step))}
           >
             {step > 0 ? "+" : ""}
@@ -86,21 +92,28 @@ export const TimelineSidePanel = ({
           </Button>
         ))}
       </Flex>
-      <Flex align="center" gap="2" wrap="wrap">
-        <Button type="button" size="1" disabled={!dirty || isSaving} onClick={onSave}>
-          {isSaving ? "저장 중" : "저장"}
-        </Button>
-        <Button
-          type="button"
-          size="1"
-          variant="soft"
-          color="gray"
-          onClick={onReset}
-        >
-          <ArrowPathIcon width="14" height="14" />
-          되돌리기
-        </Button>
-      </Flex>
+      {canManage && (
+        <Flex align="center" gap="2" wrap="wrap">
+          <Button
+            type="button"
+            size="1"
+            disabled={!dirty || isSaving}
+            onClick={onSave}
+          >
+            {isSaving ? "저장 중" : "저장"}
+          </Button>
+          <Button
+            type="button"
+            size="1"
+            variant="soft"
+            color="gray"
+            onClick={onReset}
+          >
+            <ArrowPathIcon width="14" height="14" />
+            되돌리기
+          </Button>
+        </Flex>
+      )}
 
       <div className={styles.exportPanel}>
         <Text size="1" color="gray" weight="bold">

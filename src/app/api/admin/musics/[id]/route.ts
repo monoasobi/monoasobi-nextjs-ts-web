@@ -1,7 +1,7 @@
 import {
   parseAdminPayload,
   parseNonNegativeId,
-  requireAdminSession,
+  requireAdminWriteAccess,
 } from "@/app/api/admin/_utils";
 import { deleteMusic, updateMusic } from "@/server/mutations/admin";
 import { musicSchema } from "@/server/schemas/admin.schema";
@@ -17,7 +17,7 @@ export const PUT = async (
   request: Request,
   context: AdminMusicRouteContext,
 ) => {
-  const unauthorized = await requireAdminSession();
+  const unauthorized = await requireAdminWriteAccess();
   if (unauthorized) return unauthorized;
 
   const { id: rawId } = await context.params;
@@ -43,7 +43,7 @@ export const DELETE = async (
   _request: Request,
   context: AdminMusicRouteContext,
 ) => {
-  const unauthorized = await requireAdminSession();
+  const unauthorized = await requireAdminWriteAccess();
   if (unauthorized) return unauthorized;
 
   const { id: rawId } = await context.params;

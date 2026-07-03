@@ -52,6 +52,7 @@ PRIVATE_READER_PASSWORD=
 PRIVATE_READER_SESSION_SECRET=
 
 ADMIN_PASSWORD=
+ADMIN_VIEWER_PASSWORDS=
 ADMIN_SESSION_SECRET=
 AGENT_API_TOKEN=
 
@@ -112,6 +113,7 @@ src/server
 ## 권한
 
 - `admin`: 사이트 관리자 화면과 `/api/admin/*` 쓰기 API에 사용하는 권한입니다.
+- `admin-viewer`: 사이트 관리자 화면을 조회하고 타임라인 SRT를 다운로드할 수 있지만, DB 쓰기 API는 사용할 수 없는 권한입니다.
 - `agent`: 외부 프로젝트가 `/api/agent/*` 읽기 API를 호출할 때 사용하는 토큰입니다.
 
 ## 콘텐츠 저장소

@@ -1,7 +1,7 @@
 import {
   parseAdminPayload,
   parseNonNegativeId,
-  requireAdminSession,
+  requireAdminWriteAccess,
 } from "@/app/api/admin/_utils";
 import {
   deleteLyricTrack,
@@ -20,7 +20,7 @@ export const PUT = async (
   request: Request,
   context: AdminLyricTrackRouteContext,
 ) => {
-  const unauthorized = await requireAdminSession();
+  const unauthorized = await requireAdminWriteAccess();
   if (unauthorized) return unauthorized;
 
   const { musicId: rawMusicId } = await context.params;
@@ -52,7 +52,7 @@ export const DELETE = async (
   _request: Request,
   context: AdminLyricTrackRouteContext,
 ) => {
-  const unauthorized = await requireAdminSession();
+  const unauthorized = await requireAdminWriteAccess();
   if (unauthorized) return unauthorized;
 
   const { musicId: rawMusicId } = await context.params;

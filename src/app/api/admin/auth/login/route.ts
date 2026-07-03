@@ -2,7 +2,7 @@ import {
   ADMIN_COOKIE_NAME,
   createAdminSession,
   getAdminCookieOptions,
-  verifyAdminPassword,
+  verifyAdminCredentials,
 } from "@/server/auth/admin";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
@@ -16,14 +16,16 @@ export const POST = async (request: Request) => {
   const password = typeof body?.password === "string" ? body.password : "";
 
   try {
-    if (!verifyAdminPassword(password)) {
+    const role = verifyAdminCredentials(password);
+
+    if (!role) {
       return NextResponse.json({ ok: false }, { status: 401 });
     }
 
     const cookieStore = await cookies();
     cookieStore.set(
       ADMIN_COOKIE_NAME,
-      createAdminSession(),
+      createAdminSession(role),
       getAdminCookieOptions(),
     );
 

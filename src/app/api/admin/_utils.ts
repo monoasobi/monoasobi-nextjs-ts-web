@@ -3,13 +3,33 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import type { z } from "zod";
 
-export const requireAdminSession = async () => {
+export const getAdminSession = async () => {
   const cookieStore = await cookies();
   const session = cookieStore.get(ADMIN_COOKIE_NAME)?.value;
 
-  if (verifyAdminSession(session)) return null;
+  return verifyAdminSession(session);
+};
+
+export const requireAdminSession = async () => {
+  const session = await getAdminSession();
+
+  if (session.authenticated) return null;
 
   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+};
+
+export const requireAdminWriteAccess = async () => {
+  const session = await getAdminSession();
+
+  if (!session.authenticated) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (session.role !== "admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  return null;
 };
 
 export const parseAdminPayload = async <TSchema extends z.ZodType>(

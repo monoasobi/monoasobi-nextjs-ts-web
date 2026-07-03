@@ -9,6 +9,7 @@ import { TimelineLinePopover } from "./TimelineLinePopover";
 import type { TimelineEdge } from "./useTimelineResize";
 
 interface TimelineLineBlockProps {
+  canManage: boolean;
   displayStart: number;
   index: number;
   isActive: boolean;
@@ -29,6 +30,7 @@ interface TimelineLineBlockProps {
 }
 
 export const TimelineLineBlock = ({
+  canManage,
   displayStart,
   index,
   isActive,
@@ -44,8 +46,10 @@ export const TimelineLineBlock = ({
   onUpdateLine,
 }: TimelineLineBlockProps) => (
   <Popover.Root
-    open={isEditing}
+    open={canManage && isEditing}
     onOpenChange={(open) => {
+      if (!canManage) return;
+
       if (open) {
         onSelect(index);
         onEdit(index);
@@ -58,6 +62,7 @@ export const TimelineLineBlock = ({
       <div
         className={styles.block}
         data-active={isActive}
+        data-can-manage={canManage}
         data-selected={isSelected}
         style={{ left, width }}
         role="button"
@@ -66,7 +71,7 @@ export const TimelineLineBlock = ({
           event.preventDefault();
 
           if (isSelected) {
-            onEdit(index);
+            if (canManage) onEdit(index);
             return;
           }
 
@@ -76,39 +81,45 @@ export const TimelineLineBlock = ({
         onKeyDown={(event) => {
           if (event.key === "Enter") {
             onSelect(index);
-            onEdit(index);
+            if (canManage) onEdit(index);
           }
         }}
       >
-        <button
-          type="button"
-          className={`${styles.handle} ${styles.handleStart}`}
-          aria-label="start 조정"
-          onMouseDown={(event) => onResizeMouseDown(event, index, "start")}
-          onClick={(event) => event.stopPropagation()}
-        />
+        {canManage && (
+          <button
+            type="button"
+            className={`${styles.handle} ${styles.handleStart}`}
+            aria-label="start 조정"
+            onMouseDown={(event) => onResizeMouseDown(event, index, "start")}
+            onClick={(event) => event.stopPropagation()}
+          />
+        )}
         <div className={styles.blockText}>
           <span className={styles.blockMain}>{getLineLabel(line, index)}</span>
           <span className={styles.blockSub}>
             {line.kr || `${formatTime(displayStart)}`}
           </span>
         </div>
-        <button
-          type="button"
-          className={`${styles.handle} ${styles.handleEnd}`}
-          aria-label="end 조정"
-          onMouseDown={(event) => onResizeMouseDown(event, index, "end")}
-          onClick={(event) => event.stopPropagation()}
-        />
+        {canManage && (
+          <button
+            type="button"
+            className={`${styles.handle} ${styles.handleEnd}`}
+            aria-label="end 조정"
+            onMouseDown={(event) => onResizeMouseDown(event, index, "end")}
+            onClick={(event) => event.stopPropagation()}
+          />
+        )}
       </div>
     </Popover.Trigger>
-    <Popover.Content width="360px" sideOffset={8}>
-      <TimelineLinePopover
-        index={index}
-        line={line}
-        onLineTimeChange={onLineTimeChange}
-        onUpdateLine={onUpdateLine}
-      />
-    </Popover.Content>
+    {canManage && (
+      <Popover.Content width="360px" sideOffset={8}>
+        <TimelineLinePopover
+          index={index}
+          line={line}
+          onLineTimeChange={onLineTimeChange}
+          onUpdateLine={onUpdateLine}
+        />
+      </Popover.Content>
+    )}
   </Popover.Root>
 );

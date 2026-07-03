@@ -20,8 +20,9 @@ export default async function AdminLyricTimelinePage({
 }: AdminLyricTimelinePageProps) {
   const cookieStore = await cookies();
   const session = cookieStore.get(ADMIN_COOKIE_NAME)?.value;
+  const adminSession = verifyAdminSession(session);
 
-  if (!verifyAdminSession(session)) {
+  if (!adminSession.authenticated) {
     return <AdminLogin />;
   }
 
@@ -80,7 +81,11 @@ export default async function AdminLyricTimelinePage({
         )}
 
         {lyricTrack && music.youtubeId && (
-          <LyricTimelineEditor music={music} lyricTrack={lyricTrack} />
+          <LyricTimelineEditor
+            music={music}
+            lyricTrack={lyricTrack}
+            role={adminSession.role}
+          />
         )}
       </section>
     </main>

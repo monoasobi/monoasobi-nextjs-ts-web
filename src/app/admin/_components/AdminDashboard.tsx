@@ -1,5 +1,6 @@
 "use client";
 
+import type { AdminRole } from "@appTypes/admin";
 import {
   Badge,
   Button,
@@ -33,10 +34,12 @@ export type SelectedNode =
 
 interface AdminDashboardProps {
   data: AdminDashboardData;
+  role: AdminRole;
 }
 
-export const AdminDashboard = ({ data }: AdminDashboardProps) => {
+export const AdminDashboard = ({ data, role }: AdminDashboardProps) => {
   const router = useRouter();
+  const canManage = role === "admin";
   const [selectedNode, setSelectedNode] = useState<SelectedNode>({
     type: "music",
     id: data.musics[0]?.id ?? 0,
@@ -84,7 +87,14 @@ export const AdminDashboard = ({ data }: AdminDashboardProps) => {
     <div className={styles.container}>
       <Flex className={styles.header} justify="between" align="center" gap="3">
         <Flex direction="column" gap="1">
-          <Heading size="5">Admin</Heading>
+          <Flex align="center" gap="2">
+            <Heading size="5">Admin</Heading>
+            {role === "viewer" && (
+              <Badge color="gray" variant="soft">
+                Viewer
+              </Badge>
+            )}
+          </Flex>
         </Flex>
         <Button
           type="button"
@@ -108,14 +118,16 @@ export const AdminDashboard = ({ data }: AdminDashboardProps) => {
                 label="Music"
                 count={data.musics.length}
                 action={
-                  <Button
-                    type="button"
-                    size="1"
-                    variant="soft"
-                    onClick={() => setSelectedNode({ type: "newMusic" })}
-                  >
-                    + Music
-                  </Button>
+                  canManage ? (
+                    <Button
+                      type="button"
+                      size="1"
+                      variant="soft"
+                      onClick={() => setSelectedNode({ type: "newMusic" })}
+                    >
+                      + Music
+                    </Button>
+                  ) : undefined
                 }
               >
                 {data.musics.map((music) => {
@@ -143,7 +155,7 @@ export const AdminDashboard = ({ data }: AdminDashboardProps) => {
                       {isExpanded && (
                         <div className={styles.treeChildren}>
                           <div className={styles.treeActions}>
-                            {novels.length === 0 && (
+                            {canManage && novels.length === 0 && (
                               <Button
                                 type="button"
                                 size="1"
@@ -158,7 +170,7 @@ export const AdminDashboard = ({ data }: AdminDashboardProps) => {
                                 + Novel
                               </Button>
                             )}
-                            {comics.length === 0 && (
+                            {canManage && comics.length === 0 && (
                               <Button
                                 type="button"
                                 size="1"
@@ -173,7 +185,7 @@ export const AdminDashboard = ({ data }: AdminDashboardProps) => {
                                 + Comic
                               </Button>
                             )}
-                            {!lyricTrack && (
+                            {canManage && !lyricTrack && (
                               <Button
                                 type="button"
                                 size="1"
@@ -259,14 +271,16 @@ export const AdminDashboard = ({ data }: AdminDashboardProps) => {
                 label="Books"
                 count={data.books.length}
                 action={
-                  <Button
-                    type="button"
-                    size="1"
-                    variant="soft"
-                    onClick={() => setSelectedNode({ type: "newBook" })}
-                  >
-                    + Book
-                  </Button>
+                  canManage ? (
+                    <Button
+                      type="button"
+                      size="1"
+                      variant="soft"
+                      onClick={() => setSelectedNode({ type: "newBook" })}
+                    >
+                      + Book
+                    </Button>
+                  ) : undefined
                 }
               >
                 {data.books.map((book) => (
@@ -295,6 +309,7 @@ export const AdminDashboard = ({ data }: AdminDashboardProps) => {
           <AdminDocumentPanel
             key={getSelectedNodeKey(selectedNode)}
             data={data}
+            role={role}
             selectedNode={selectedNode}
             onSaved={() => router.refresh()}
           />

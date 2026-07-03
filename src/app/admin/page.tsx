@@ -9,12 +9,13 @@ export const dynamic = "force-dynamic";
 export default async function AdminPage() {
   const cookieStore = await cookies();
   const session = cookieStore.get(ADMIN_COOKIE_NAME)?.value;
+  const adminSession = verifyAdminSession(session);
 
-  if (!verifyAdminSession(session)) {
+  if (!adminSession.authenticated) {
     return <AdminLogin />;
   }
 
   const data = await getAdminDashboard();
 
-  return <AdminDashboard data={data} />;
+  return <AdminDashboard data={data} role={adminSession.role} />;
 }

@@ -1,13 +1,22 @@
 import "server-only";
 
+import type { AdminRole, AdminSession } from "@appTypes/admin";
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 export const ADMIN_COOKIE_NAME = "monoasobi_admin";
 export const ADMIN_MAX_AGE = 60 * 60 * 8;
 
-const getAdminPassword = () => process.env.ADMIN_PASSWORD;
-const getAdminSecret = () =>
-  process.env.ADMIN_SESSION_SECRET ?? getAdminPassword();
+type AdminSessionPayload = {
+  role: AdminRole;
+  expiresAt: number;
+};
+
+const getAdminPassword = () => process.env.ADMIN_PASSWORD?.trim();
+const getViewerPasswords = () =>
+  process.env.ADMIN_VIEWER_PASSWORDS?.split(",")
+    .map((password) => password.trim())
+    .filter(Boolean) ?? [];
+const getAdminSecret = () => process.env.ADMIN_SESSION_SECRET;
 
 const sign = (payload: string) => {
   const secret = getAdminSecret();
@@ -26,36 +35,73 @@ const safeEqual = (left: string, right: string) => {
   );
 };
 
-export const verifyAdminPassword = (password: string) => {
-  const expected = getAdminPassword();
-  if (!expected) throw new Error("ADMIN_PASSWORD is required");
+const encodePayload = (payload: AdminSessionPayload) =>
+  Buffer.from(JSON.stringify(payload)).toString("base64url");
 
-  return safeEqual(password, expected);
+const decodePayload = (payload: string): AdminSessionPayload | null => {
+  try {
+    const parsed = JSON.parse(
+      Buffer.from(payload, "base64url").toString("utf8"),
+    ) as Partial<AdminSessionPayload> | null;
+
+    if (
+      !parsed ||
+      (parsed.role !== "admin" && parsed.role !== "viewer") ||
+      typeof parsed.expiresAt !== "number"
+    ) {
+      return null;
+    }
+
+    return { role: parsed.role, expiresAt: parsed.expiresAt };
+  } catch {
+    return null;
+  }
 };
 
-export const createAdminSession = () => {
+export const verifyAdminCredentials = (inputPassword: string) => {
+  const adminPassword = getAdminPassword();
+  if (!adminPassword) throw new Error("ADMIN_PASSWORD is required");
+
+  if (safeEqual(inputPassword, adminPassword)) return "admin" as const;
+
+  if (
+    getViewerPasswords().some((viewerPassword) =>
+      safeEqual(inputPassword, viewerPassword),
+    )
+  ) {
+    return "viewer" as const;
+  }
+
+  return null;
+};
+
+export const createAdminSession = (role: AdminRole) => {
   const expiresAt = Date.now() + ADMIN_MAX_AGE * 1000;
-  const payload = String(expiresAt);
+  const payload = encodePayload({ role, expiresAt });
 
   return `${payload}.${sign(payload)}`;
 };
 
-export const verifyAdminSession = (session?: string | null) => {
-  if (!session) return false;
+export const verifyAdminSession = (session?: string | null): AdminSession => {
+  if (!session) return { authenticated: false };
 
-  const [expiresAt, signature] = session.split(".");
-  if (!expiresAt || !signature) return false;
+  const [payload, signature] = session.split(".");
+  if (!payload || !signature) return { authenticated: false };
 
-  const expiresAtNumber = Number(expiresAt);
-  if (!Number.isFinite(expiresAtNumber) || expiresAtNumber < Date.now()) {
-    return false;
+  const decodedPayload = decodePayload(payload);
+  if (!decodedPayload || decodedPayload.expiresAt < Date.now()) {
+    return { authenticated: false };
   }
 
   try {
-    return safeEqual(signature, sign(expiresAt));
+    if (!safeEqual(signature, sign(payload))) {
+      return { authenticated: false };
+    }
   } catch {
-    return false;
+    return { authenticated: false };
   }
+
+  return { authenticated: true, role: decodedPayload.role };
 };
 
 export const getAdminCookieOptions = () => ({
