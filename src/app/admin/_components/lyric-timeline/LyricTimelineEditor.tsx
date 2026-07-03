@@ -2,55 +2,40 @@
 
 import type { LyricLine } from "@appTypes/lyric";
 import type { Music } from "@appTypes/music";
-import { ArrowDownTrayIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
-import {
-  Button,
-  Callout,
-  Flex,
-  Popover,
-  Select,
-  Text,
-  TextArea,
-  TextField,
-} from "@radix-ui/themes";
+import { Callout } from "@radix-ui/themes";
 import { useRouter } from "next/navigation";
 import {
-  useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
   type MouseEvent as ReactMouseEvent,
-  type WheelEvent,
 } from "react";
+import { TimelineCanvas } from "./LyricTimelineEditor/TimelineCanvas";
+import { TimelineSidePanel } from "./LyricTimelineEditor/TimelineSidePanel";
+import {
+  buildSrt,
+  downloadTextFile,
+  sanitizeFilePart,
+  type SrtExportConfig,
+} from "./LyricTimelineEditor/srt";
+import {
+  getNormalizedLyrics,
+} from "./LyricTimelineEditor/timelineUtils";
+import { useTimelineResize } from "./LyricTimelineEditor/useTimelineResize";
+import { useTimelineShortcuts } from "./LyricTimelineEditor/useTimelineShortcuts";
+import { useTimelineZoom } from "./LyricTimelineEditor/useTimelineZoom";
 import styles from "./LyricTimelineEditor.module.css";
 import {
-  TimelineYouTubePreview,
   type TimelineYouTubePreviewHandle,
 } from "./TimelineYouTubePreview";
 import {
   DEFAULT_PIXELS_PER_SECOND,
-  MAX_PIXELS_PER_SECOND,
-  MIN_LINE_DURATION,
-  MIN_PIXELS_PER_SECOND,
-  clamp,
-  formatTime,
   getDisplayEnd,
   getDisplayStart,
-  getLineLabel,
   getTimelineEnd,
   getTimelineStart,
   roundTime,
 } from "./time";
-
-const ZOOM_FACTOR = 1.18;
-const TICK_SECONDS = 5;
-const NONE_CALL_TYPE = "NONE";
-const SRT_EXPORTS = [
-  { key: "jp", label: "일어", suffix: "일어" },
-  { key: "jpReading", label: "독음", suffix: "독음" },
-  { key: "kr", label: "한글", suffix: "한글" },
-] as const;
 
 interface LyricTimelineEditorProps {
   music: Music;
@@ -61,78 +46,6 @@ interface LyricTimelineEditorProps {
   };
 }
 
-type DragState = {
-  index: number;
-  edge: "start" | "end";
-  startX: number;
-  lyrics: LyricLine[];
-};
-
-const isEditableTarget = (target: EventTarget | null) => {
-  if (!(target instanceof HTMLElement)) return false;
-  return Boolean(
-    target.closest(
-      "input, textarea, select, button, [role='slider'], [contenteditable='true']",
-    ),
-  );
-};
-
-const getNormalizedLyrics = (lyrics: LyricLine[]) =>
-  lyrics.map((line) => ({
-    ...line,
-    start: roundTime(line.start),
-    end: roundTime(line.end),
-  }));
-
-const formatSrtTime = (seconds: number) => {
-  const totalMilliseconds = Math.max(0, Math.round(seconds * 1000));
-  const hours = Math.floor(totalMilliseconds / 3_600_000);
-  const minutes = Math.floor((totalMilliseconds % 3_600_000) / 60_000);
-  const wholeSeconds = Math.floor((totalMilliseconds % 60_000) / 1000);
-  const milliseconds = totalMilliseconds % 1000;
-
-  return `${hours.toString().padStart(2, "0")}:${minutes
-    .toString()
-    .padStart(2, "0")}:${wholeSeconds
-    .toString()
-    .padStart(2, "0")},${milliseconds.toString().padStart(3, "0")}`;
-};
-
-const sanitizeFilePart = (value: string) =>
-  value
-    .trim()
-    .replace(/[\\/:*?"<>|]/g, "")
-    .replace(/\s+/g, " ") || "lyrics";
-
-const buildSrt = (
-  lyrics: LyricLine[],
-  textKey: (typeof SRT_EXPORTS)[number]["key"],
-) =>
-  lyrics
-    .map((line, index) => {
-      const start = formatSrtTime(line.start);
-      const end = formatSrtTime(line.end);
-      const text = line[textKey].trim();
-
-      return `${index + 1}\r\n${start} --> ${end}\r\n${text}\r\n`;
-    })
-    .join("\r\n");
-
-const downloadTextFile = (filename: string, content: string) => {
-  const blob = new Blob([`\uFEFF${content}`], {
-    type: "text/plain;charset=utf-8",
-  });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-
-  anchor.href = url;
-  anchor.download = filename;
-  document.body.append(anchor);
-  anchor.click();
-  anchor.remove();
-  URL.revokeObjectURL(url);
-};
-
 export const LyricTimelineEditor = ({
   music,
   lyricTrack,
@@ -140,7 +53,6 @@ export const LyricTimelineEditor = ({
   const router = useRouter();
   const previewRef = useRef<TimelineYouTubePreviewHandle>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
-  const dragRef = useRef<DragState | null>(null);
   const [draftLyrics, setDraftLyrics] = useState(() =>
     getNormalizedLyrics(lyricTrack.lyricJson),
   );
@@ -188,9 +100,6 @@ export const LyricTimelineEditor = ({
   const activeLine =
     activeLineIndex >= 0 ? (draftLyrics[activeLineIndex] ?? null) : null;
 
-  const timelineToPixel = (time: number) =>
-    (time - timelineStart) * pixelsPerSecond;
-
   const updateLine = (index: number, patch: Partial<LyricLine>) => {
     setDraftLyrics((prev) =>
       prev.map((line, lineIndex) =>
@@ -199,203 +108,28 @@ export const LyricTimelineEditor = ({
     );
   };
 
-  const resizeLineStart = useCallback(
-    (index: number, nextStart: number, sourceLyrics = draftLyrics) => {
-      const next = sourceLyrics.map((line) => ({ ...line }));
-      const line = next[index];
-      if (!line) return sourceLyrics;
+  const { handleLineTimeChange, handleResizeMouseDown } = useTimelineResize({
+    draftLyrics,
+    pixelsPerSecond,
+    setDraftLyrics,
+  });
 
-      const minStart =
-        index > 0 ? next[index - 1].start + MIN_LINE_DURATION : 0;
-      const maxStart = line.end - MIN_LINE_DURATION;
-      const start = roundTime(clamp(nextStart, minStart, maxStart));
+  const { handleWheel, zoomTimeline } = useTimelineZoom({
+    currentTime,
+    pixelsPerSecond,
+    setPixelsPerSecond,
+    timelineRef,
+    timelineStart,
+  });
 
-      line.start = start;
-      if (index > 0 && next[index - 1].end > start) {
-        next[index - 1].end = start;
-      }
-
-      return next;
-    },
-    [draftLyrics],
-  );
-
-  const resizeLineEnd = useCallback(
-    (index: number, nextEnd: number, sourceLyrics = draftLyrics) => {
-      const next = sourceLyrics.map((line) => ({ ...line }));
-      const line = next[index];
-      if (!line) return sourceLyrics;
-
-      const minEnd = line.start + MIN_LINE_DURATION;
-      const maxEnd =
-        index < next.length - 1
-          ? next[index + 1].end - MIN_LINE_DURATION
-          : Number.POSITIVE_INFINITY;
-      const end = roundTime(clamp(nextEnd, minEnd, maxEnd));
-
-      line.end = end;
-      if (index < next.length - 1 && next[index + 1].start < end) {
-        next[index + 1].start = end;
-      }
-
-      return next;
-    },
-    [draftLyrics],
-  );
-
-  const handleLineTimeChange = (
-    index: number,
-    edge: "start" | "end",
-    value: string,
-  ) => {
-    const time = Number(value);
-    if (!Number.isFinite(time)) return;
-    setDraftLyrics((prev) =>
-      edge === "start"
-        ? resizeLineStart(index, time, prev)
-        : resizeLineEnd(index, time, prev),
-    );
-  };
-
-  const handleMouseDown = (
-    event: ReactMouseEvent<HTMLButtonElement>,
-    index: number,
-    edge: "start" | "end",
-  ) => {
-    event.preventDefault();
-    event.stopPropagation();
-    dragRef.current = {
-      index,
-      edge,
-      startX: event.clientX,
-      lyrics: draftLyrics,
-    };
-  };
-
-  const handleDragMove = useCallback(
-    (clientX: number) => {
-      const drag = dragRef.current;
-      if (!drag) return;
-
-      const deltaSeconds = (clientX - drag.startX) / pixelsPerSecond;
-      const line = drag.lyrics[drag.index];
-      if (!line) return;
-
-      const nextTime =
-        drag.edge === "start"
-          ? line.start + deltaSeconds
-          : line.end + deltaSeconds;
-      setDraftLyrics(
-        drag.edge === "start"
-          ? resizeLineStart(drag.index, nextTime, drag.lyrics)
-          : resizeLineEnd(drag.index, nextTime, drag.lyrics),
-      );
-    },
-    [pixelsPerSecond, resizeLineEnd, resizeLineStart],
-  );
-
-  const stopDragging = useCallback(() => {
-    dragRef.current = null;
-  }, []);
-
-  useEffect(() => {
-    const handleMouseMove = (event: MouseEvent) => {
-      if (!dragRef.current) return;
-      event.preventDefault();
-      handleDragMove(event.clientX);
-    };
-
-    const handleMouseUp = () => {
-      stopDragging();
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [handleDragMove, stopDragging]);
-
-  const getAnchorTime = useCallback(
-    (clientX?: number) => {
-      const timeline = timelineRef.current;
-      if (!timeline) return currentTime || 0;
-
-      const rect = timeline.getBoundingClientRect();
-      const x = clientX == null ? rect.width / 2 : clientX - rect.left;
-      return timelineStart + (timeline.scrollLeft + x) / pixelsPerSecond;
-    },
-    [currentTime, pixelsPerSecond, timelineStart],
-  );
-
-  const zoomTimeline = useCallback(
-    (nextPixels: number, anchorTime = getAnchorTime()) => {
-      const timeline = timelineRef.current;
-      const nextPixelsPerSecond = clamp(
-        nextPixels,
-        MIN_PIXELS_PER_SECOND,
-        MAX_PIXELS_PER_SECOND,
-      );
-
-      if (!timeline) {
-        setPixelsPerSecond(nextPixelsPerSecond);
-        return;
-      }
-
-      const rect = timeline.getBoundingClientRect();
-      const anchorX =
-        anchorTime === currentTime
-          ? rect.width / 2
-          : (anchorTime - timelineStart) * pixelsPerSecond -
-            timeline.scrollLeft;
-
-      setPixelsPerSecond(nextPixelsPerSecond);
-
-      requestAnimationFrame(() => {
-        timeline.scrollLeft =
-          (anchorTime - timelineStart) * nextPixelsPerSecond - anchorX;
-      });
-    },
-    [currentTime, getAnchorTime, pixelsPerSecond, timelineStart],
-  );
-
-  const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
-    if (!event.metaKey) return;
-    event.preventDefault();
-    const direction = event.deltaY > 0 ? -1 : 1;
-    const factor = Math.pow(ZOOM_FACTOR, direction);
-    zoomTimeline(pixelsPerSecond * factor, getAnchorTime(event.clientX));
-  };
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (!isTimelineHot || isEditableTarget(event.target)) return;
-
-      if (event.code === "Space") {
-        event.preventDefault();
-        previewRef.current?.togglePlay();
-      }
-
-      if (event.code === "Enter" && activeLineIndex >= 0) {
-        event.preventDefault();
-        setSelectedLineIndex(activeLineIndex);
-      }
-
-      if (event.metaKey && (event.key === "=" || event.key === "+")) {
-        event.preventDefault();
-        zoomTimeline(pixelsPerSecond * ZOOM_FACTOR);
-      }
-
-      if (event.metaKey && event.key === "-") {
-        event.preventDefault();
-        zoomTimeline(pixelsPerSecond / ZOOM_FACTOR);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeLineIndex, isTimelineHot, pixelsPerSecond, zoomTimeline]);
+  useTimelineShortcuts({
+    activeLineIndex,
+    isTimelineHot,
+    pixelsPerSecond,
+    previewRef,
+    onActiveLineSelect: setSelectedLineIndex,
+    onZoom: zoomTimeline,
+  });
 
   const handleSeekDisplayTime = (time: number) => {
     const seekTime = Math.max(0, time);
@@ -414,7 +148,7 @@ export const LyricTimelineEditor = ({
     handleSeekDisplayTime(time);
   };
 
-  const exportSrt = (exportConfig: (typeof SRT_EXPORTS)[number]) => {
+  const exportSrt = (exportConfig: SrtExportConfig) => {
     const normalizedLyrics = getNormalizedLyrics(draftLyrics);
     const srt = buildSrt(normalizedLyrics, exportConfig.key);
     const filenameBase = `${music.id}_${sanitizeFilePart(music.korTitle || music.title)}`;
@@ -456,15 +190,6 @@ export const LyricTimelineEditor = ({
     router.refresh();
   };
 
-  const ticks = [];
-  for (
-    let time = Math.ceil(timelineStart / TICK_SECONDS) * TICK_SECONDS;
-    time <= timelineEnd;
-    time += TICK_SECONDS
-  ) {
-    ticks.push(time);
-  }
-
   return (
     <div
       className={styles.editor}
@@ -481,337 +206,46 @@ export const LyricTimelineEditor = ({
       </div>
 
       <div className={styles.workspace}>
-        <aside className={styles.sidePanel}>
-          <TimelineYouTubePreview
-            ref={previewRef}
-            youtubeId={music.youtubeId ?? ""}
-            activeLine={activeLine}
-            onTimeUpdate={setCurrentTime}
-            onDurationChange={setDuration}
-          />
+        <TimelineSidePanel
+          music={music}
+          activeLine={activeLine}
+          previewRef={previewRef}
+          draftSync={draftSync}
+          dirty={dirty}
+          isSaving={isSaving}
+          message={message}
+          onTimeUpdate={setCurrentTime}
+          onDurationChange={setDuration}
+          onSyncChange={setDraftSync}
+          onSave={save}
+          onReset={() => {
+            setDraftLyrics(getNormalizedLyrics(lyricTrack.lyricJson));
+            setDraftSync(lyricTrack.sync);
+            setMessage(null);
+          }}
+          onExportSrt={exportSrt}
+        />
 
-          <div className={styles.controlPanel}>
-            <label className={styles.field}>
-              <Text size="1" color="gray" weight="bold">
-                sync
-              </Text>
-              <TextField.Root
-                type="number"
-                step="0.01"
-                value={draftSync}
-                onChange={(event) => {
-                  const value = Number(event.target.value);
-                  if (Number.isFinite(value)) setDraftSync(roundTime(value));
-                }}
-              />
-            </label>
-            <Flex gap="1" wrap="wrap">
-              {[-0.1, -0.01, 0.01, 0.1].map((step) => (
-                <Button
-                  key={step}
-                  type="button"
-                  size="1"
-                  variant="soft"
-                  color="gray"
-                  onClick={() => setDraftSync((prev) => roundTime(prev + step))}
-                >
-                  {step > 0 ? "+" : ""}
-                  {step}
-                </Button>
-              ))}
-            </Flex>
-            <Flex align="center" gap="2" wrap="wrap">
-              <Button
-                type="button"
-                size="1"
-                disabled={!dirty || isSaving}
-                onClick={save}
-              >
-                {isSaving ? "저장 중" : "저장"}
-              </Button>
-              <Button
-                type="button"
-                size="1"
-                variant="soft"
-                color="gray"
-                onClick={() => {
-                  setDraftLyrics(getNormalizedLyrics(lyricTrack.lyricJson));
-                  setDraftSync(lyricTrack.sync);
-                  setMessage(null);
-                }}
-              >
-                <ArrowPathIcon width="14" height="14" />
-                되돌리기
-              </Button>
-            </Flex>
-
-            <div className={styles.exportPanel}>
-              <Text size="1" color="gray" weight="bold">
-                SRT Export
-              </Text>
-              <Flex gap="1" wrap="wrap">
-                {SRT_EXPORTS.map((exportConfig) => (
-                  <Button
-                    key={exportConfig.key}
-                    type="button"
-                    size="1"
-                    variant="soft"
-                    color="gray"
-                    onClick={() => exportSrt(exportConfig)}
-                  >
-                    <ArrowDownTrayIcon width="14" height="14" />
-                    {exportConfig.label}
-                  </Button>
-                ))}
-              </Flex>
-            </div>
-
-            {message && (
-              <Callout.Root
-                color={message.tone === "error" ? "red" : "green"}
-                variant="soft"
-              >
-                <Callout.Text>{message.text}</Callout.Text>
-              </Callout.Root>
-            )}
-          </div>
-        </aside>
-
-        <section className={styles.timelineSection}>
-          <div
-            className={styles.timelineScroll}
-            ref={timelineRef}
-            onWheel={handleWheel}
-          >
-            <div
-              className={styles.timelineCanvas}
-              style={{ width: timelineWidth }}
-            >
-              <div className={styles.ruler} onClick={handleRulerClick}>
-                {ticks.map((time) => (
-                  <div
-                    key={time}
-                    className={styles.tick}
-                    style={{ left: timelineToPixel(time) }}
-                  >
-                    {formatTime(time)}
-                  </div>
-                ))}
-              </div>
-
-              <div
-                className={styles.playhead}
-                style={{ left: timelineToPixel(currentTime) }}
-                aria-label={`현재 시간 ${formatTime(currentTime)}`}
-              />
-
-              <div className={styles.track}>
-                {draftLyrics.map((line, index) => {
-                  const displayStart = getDisplayStart(line, draftSync);
-                  const displayEnd = getDisplayEnd(line, draftSync);
-                  const left = timelineToPixel(displayStart);
-                  const width = Math.max(
-                    24,
-                    (displayEnd - displayStart) * pixelsPerSecond,
-                  );
-                  const isActive = activeLineIndex === index;
-                  const isSelected = selectedLineIndex === index;
-
-                  return (
-                    <Popover.Root
-                      key={`${line.start}-${line.end}-${index}`}
-                      open={editingLineIndex === index}
-                      onOpenChange={(open) => {
-                        if (open) {
-                          setSelectedLineIndex(index);
-                          setEditingLineIndex(index);
-                        } else if (editingLineIndex === index) {
-                          setEditingLineIndex(null);
-                        }
-                      }}
-                    >
-                      <Popover.Trigger>
-                        <div
-                          className={styles.block}
-                          data-active={isActive}
-                          data-selected={isSelected}
-                          style={{ left, width }}
-                          role="button"
-                          tabIndex={0}
-                          onClick={(event) => {
-                            event.preventDefault();
-
-                            if (selectedLineIndex === index) {
-                              setEditingLineIndex(index);
-                              return;
-                            }
-
-                            setSelectedLineIndex(index);
-                            setEditingLineIndex(null);
-                          }}
-                          onKeyDown={(event) => {
-                            if (event.key === "Enter") {
-                              setSelectedLineIndex(index);
-                              setEditingLineIndex(index);
-                            }
-                          }}
-                        >
-                          <button
-                            type="button"
-                            className={`${styles.handle} ${styles.handleStart}`}
-                            aria-label="start 조정"
-                            onMouseDown={(event) =>
-                              handleMouseDown(event, index, "start")
-                            }
-                            onClick={(event) => event.stopPropagation()}
-                          />
-                          <div className={styles.blockText}>
-                            <span className={styles.blockMain}>
-                              {getLineLabel(line, index)}
-                            </span>
-                            <span className={styles.blockSub}>
-                              {line.kr || `${formatTime(displayStart)}`}
-                            </span>
-                          </div>
-                          <button
-                            type="button"
-                            className={`${styles.handle} ${styles.handleEnd}`}
-                            aria-label="end 조정"
-                            onMouseDown={(event) =>
-                              handleMouseDown(event, index, "end")
-                            }
-                            onClick={(event) => event.stopPropagation()}
-                          />
-                        </div>
-                      </Popover.Trigger>
-                      <Popover.Content width="360px" sideOffset={8}>
-                        <Flex direction="column" gap="3">
-                          <Text size="2" weight="bold">
-                            Line {index + 1}
-                          </Text>
-                          <Flex gap="2">
-                            <label className={styles.popoverField}>
-                              <Text size="1" color="gray">
-                                start
-                              </Text>
-                              <TextField.Root
-                                type="number"
-                                step="0.01"
-                                value={line.start}
-                                onChange={(event) =>
-                                  handleLineTimeChange(
-                                    index,
-                                    "start",
-                                    event.target.value,
-                                  )
-                                }
-                              />
-                            </label>
-                            <label className={styles.popoverField}>
-                              <Text size="1" color="gray">
-                                end
-                              </Text>
-                              <TextField.Root
-                                type="number"
-                                step="0.01"
-                                value={line.end}
-                                onChange={(event) =>
-                                  handleLineTimeChange(
-                                    index,
-                                    "end",
-                                    event.target.value,
-                                  )
-                                }
-                              />
-                            </label>
-                          </Flex>
-                          <label className={styles.popoverField}>
-                            <Text size="1" color="gray">
-                              jp
-                            </Text>
-                            <TextArea
-                              value={line.jp}
-                              onChange={(event) =>
-                                updateLine(index, { jp: event.target.value })
-                              }
-                            />
-                          </label>
-                          <label className={styles.popoverField}>
-                            <Text size="1" color="gray">
-                              jpReading
-                            </Text>
-                            <TextArea
-                              value={line.jpReading}
-                              onChange={(event) =>
-                                updateLine(index, {
-                                  jpReading: event.target.value,
-                                })
-                              }
-                            />
-                          </label>
-                          <label className={styles.popoverField}>
-                            <Text size="1" color="gray">
-                              kr
-                            </Text>
-                            <TextArea
-                              value={line.kr}
-                              onChange={(event) =>
-                                updateLine(index, { kr: event.target.value })
-                              }
-                            />
-                          </label>
-                          <Flex gap="2">
-                            <label className={styles.popoverField}>
-                              <Text size="1" color="gray">
-                                callType
-                              </Text>
-                              <Select.Root
-                                value={line.callType ?? NONE_CALL_TYPE}
-                                onValueChange={(value) =>
-                                  updateLine(index, {
-                                    callType:
-                                      value === NONE_CALL_TYPE
-                                        ? undefined
-                                        : (value as LyricLine["callType"]),
-                                  })
-                                }
-                              >
-                                <Select.Trigger />
-                                <Select.Content>
-                                  <Select.Item value={NONE_CALL_TYPE}>
-                                    없음
-                                  </Select.Item>
-                                  <Select.Item value="LOUD">LOUD</Select.Item>
-                                  <Select.Item value="CLAP">CLAP</Select.Item>
-                                  <Select.Item value="CUSTOM">
-                                    CUSTOM
-                                  </Select.Item>
-                                </Select.Content>
-                              </Select.Root>
-                            </label>
-                            <label className={styles.popoverField}>
-                              <Text size="1" color="gray">
-                                callGuide
-                              </Text>
-                              <TextField.Root
-                                value={line.callGuide ?? ""}
-                                onChange={(event) =>
-                                  updateLine(index, {
-                                    callGuide: event.target.value || undefined,
-                                  })
-                                }
-                              />
-                            </label>
-                          </Flex>
-                        </Flex>
-                      </Popover.Content>
-                    </Popover.Root>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </section>
+        <TimelineCanvas
+          activeLineIndex={activeLineIndex}
+          currentTime={currentTime}
+          draftLyrics={draftLyrics}
+          draftSync={draftSync}
+          editingLineIndex={editingLineIndex}
+          pixelsPerSecond={pixelsPerSecond}
+          selectedLineIndex={selectedLineIndex}
+          timelineEnd={timelineEnd}
+          timelineRef={timelineRef}
+          timelineStart={timelineStart}
+          timelineWidth={timelineWidth}
+          onEditLine={setEditingLineIndex}
+          onLineTimeChange={handleLineTimeChange}
+          onResizeMouseDown={handleResizeMouseDown}
+          onRulerClick={handleRulerClick}
+          onSelectLine={setSelectedLineIndex}
+          onUpdateLine={updateLine}
+          onWheel={handleWheel}
+        />
       </div>
     </div>
   );
