@@ -641,7 +641,9 @@ export const LyricTimelineEditor = ({
                           style={{ left, width }}
                           role="button"
                           tabIndex={0}
-                          onClick={() => {
+                          onClick={(event) => {
+                            event.preventDefault();
+
                             if (selectedLineIndex === index) {
                               setEditingLineIndex(index);
                               return;
