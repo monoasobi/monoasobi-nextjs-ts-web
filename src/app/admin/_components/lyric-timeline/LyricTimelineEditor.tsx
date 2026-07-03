@@ -2,10 +2,7 @@
 
 import type { LyricLine } from "@appTypes/lyric";
 import type { Music } from "@appTypes/music";
-import {
-  ArrowDownTrayIcon,
-  ArrowPathIcon,
-} from "@heroicons/react/24/outline";
+import { ArrowDownTrayIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
 import {
   Button,
   Callout,
@@ -189,7 +186,7 @@ export const LyricTimelineEditor = ({
     [currentTime, draftLyrics, draftSync],
   );
   const activeLine =
-    activeLineIndex >= 0 ? draftLyrics[activeLineIndex] ?? null : null;
+    activeLineIndex >= 0 ? (draftLyrics[activeLineIndex] ?? null) : null;
 
   const timelineToPixel = (time: number) =>
     (time - timelineStart) * pixelsPerSecond;
@@ -633,7 +630,7 @@ export const LyricTimelineEditor = ({
                         }
                       }}
                     >
-                      <Popover.Trigger asChild>
+                      <Popover.Trigger>
                         <div
                           className={styles.block}
                           data-active={isActive}
