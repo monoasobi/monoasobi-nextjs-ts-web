@@ -1,11 +1,7 @@
 import { ADMIN_COOKIE_NAME, verifyAdminSession } from "@/server/auth/admin";
 import { getAdminLyricTimeline } from "@/server/queries/admin";
-import {
-  Button,
-  Callout,
-  Heading,
-  Text,
-} from "@radix-ui/themes";
+import { ChevronLeftIcon } from "@heroicons/react/24/outline";
+import { Callout, Heading, IconButton, Text } from "@radix-ui/themes";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -45,9 +41,17 @@ export default async function AdminLyricTimelinePage({
     <main className={styles.page}>
       <header className={styles.header}>
         <div className={styles.titleGroup}>
-          <Button asChild size="1" variant="ghost" color="gray">
-            <Link href="/admin">Admin으로 돌아가기</Link>
-          </Button>
+          <IconButton
+            asChild
+            className={styles.backButton}
+            size="1"
+            variant="ghost"
+            color="gray"
+          >
+            <Link href="/admin" aria-label="Admin으로 돌아가기">
+              <ChevronLeftIcon width="18" height="18" />
+            </Link>
+          </IconButton>
           <div className={styles.titleRow}>
             <Heading size="5">{music.title}</Heading>
             <Text size="2" color="gray">

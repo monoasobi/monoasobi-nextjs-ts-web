@@ -2,7 +2,10 @@
 
 import type { LyricLine } from "@appTypes/lyric";
 import type { Music } from "@appTypes/music";
-import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowDownTrayIcon,
+  ArrowPathIcon,
+} from "@heroicons/react/24/outline";
 import {
   Button,
   Callout,
@@ -46,6 +49,11 @@ import {
 const ZOOM_FACTOR = 1.18;
 const TICK_SECONDS = 5;
 const NONE_CALL_TYPE = "NONE";
+const SRT_EXPORTS = [
+  { key: "jp", label: "일어", suffix: "일어" },
+  { key: "jpReading", label: "독음", suffix: "독음" },
+  { key: "kr", label: "한글", suffix: "한글" },
+] as const;
 
 interface LyricTimelineEditorProps {
   music: Music;
@@ -66,7 +74,9 @@ type DragState = {
 const isEditableTarget = (target: EventTarget | null) => {
   if (!(target instanceof HTMLElement)) return false;
   return Boolean(
-    target.closest("input, textarea, select, button, [contenteditable='true']"),
+    target.closest(
+      "input, textarea, select, button, [role='slider'], [contenteditable='true']",
+    ),
   );
 };
 
@@ -76,6 +86,55 @@ const getNormalizedLyrics = (lyrics: LyricLine[]) =>
     start: roundTime(line.start),
     end: roundTime(line.end),
   }));
+
+const formatSrtTime = (seconds: number) => {
+  const totalMilliseconds = Math.max(0, Math.round(seconds * 1000));
+  const hours = Math.floor(totalMilliseconds / 3_600_000);
+  const minutes = Math.floor((totalMilliseconds % 3_600_000) / 60_000);
+  const wholeSeconds = Math.floor((totalMilliseconds % 60_000) / 1000);
+  const milliseconds = totalMilliseconds % 1000;
+
+  return `${hours.toString().padStart(2, "0")}:${minutes
+    .toString()
+    .padStart(2, "0")}:${wholeSeconds
+    .toString()
+    .padStart(2, "0")},${milliseconds.toString().padStart(3, "0")}`;
+};
+
+const sanitizeFilePart = (value: string) =>
+  value
+    .trim()
+    .replace(/[\\/:*?"<>|]/g, "")
+    .replace(/\s+/g, " ") || "lyrics";
+
+const buildSrt = (
+  lyrics: LyricLine[],
+  textKey: (typeof SRT_EXPORTS)[number]["key"],
+) =>
+  lyrics
+    .map((line, index) => {
+      const start = formatSrtTime(line.start);
+      const end = formatSrtTime(line.end);
+      const text = line[textKey].trim();
+
+      return `${index + 1}\r\n${start} --> ${end}\r\n${text}\r\n`;
+    })
+    .join("\r\n");
+
+const downloadTextFile = (filename: string, content: string) => {
+  const blob = new Blob([`\uFEFF${content}`], {
+    type: "text/plain;charset=utf-8",
+  });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+};
 
 export const LyricTimelineEditor = ({
   music,
@@ -95,6 +154,7 @@ export const LyricTimelineEditor = ({
     DEFAULT_PIXELS_PER_SECOND,
   );
   const [selectedLineIndex, setSelectedLineIndex] = useState<number | null>(0);
+  const [editingLineIndex, setEditingLineIndex] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{
     tone: "success" | "error";
@@ -128,6 +188,8 @@ export const LyricTimelineEditor = ({
       ),
     [currentTime, draftLyrics, draftSync],
   );
+  const activeLine =
+    activeLineIndex >= 0 ? draftLyrics[activeLineIndex] ?? null : null;
 
   const timelineToPixel = (time: number) =>
     (time - timelineStart) * pixelsPerSecond;
@@ -341,16 +403,26 @@ export const LyricTimelineEditor = ({
   const handleSeekDisplayTime = (time: number) => {
     const seekTime = Math.max(0, time);
     setCurrentTime(seekTime);
-    previewRef.current?.seekAndPlay(seekTime);
+    previewRef.current?.seekAndPause(seekTime);
   };
 
   const handleRulerClick = (event: ReactMouseEvent<HTMLDivElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const scrollLeft = timelineRef.current?.scrollLeft ?? 0;
+    const timeline = timelineRef.current;
+    if (!timeline) return;
+
+    const rect = timeline.getBoundingClientRect();
     const time =
       timelineStart +
-      (scrollLeft + event.clientX - rect.left) / pixelsPerSecond;
+      (timeline.scrollLeft + event.clientX - rect.left) / pixelsPerSecond;
     handleSeekDisplayTime(time);
+  };
+
+  const exportSrt = (exportConfig: (typeof SRT_EXPORTS)[number]) => {
+    const normalizedLyrics = getNormalizedLyrics(draftLyrics);
+    const srt = buildSrt(normalizedLyrics, exportConfig.key);
+    const filenameBase = `${music.id}_${sanitizeFilePart(music.korTitle || music.title)}`;
+
+    downloadTextFile(`${filenameBase} ${exportConfig.suffix}.srt`, srt);
   };
 
   const save = async () => {
@@ -416,6 +488,7 @@ export const LyricTimelineEditor = ({
           <TimelineYouTubePreview
             ref={previewRef}
             youtubeId={music.youtubeId ?? ""}
+            activeLine={activeLine}
             onTimeUpdate={setCurrentTime}
             onDurationChange={setDuration}
           />
@@ -475,6 +548,27 @@ export const LyricTimelineEditor = ({
               </Button>
             </Flex>
 
+            <div className={styles.exportPanel}>
+              <Text size="1" color="gray" weight="bold">
+                SRT Export
+              </Text>
+              <Flex gap="1" wrap="wrap">
+                {SRT_EXPORTS.map((exportConfig) => (
+                  <Button
+                    key={exportConfig.key}
+                    type="button"
+                    size="1"
+                    variant="soft"
+                    color="gray"
+                    onClick={() => exportSrt(exportConfig)}
+                  >
+                    <ArrowDownTrayIcon width="14" height="14" />
+                    {exportConfig.label}
+                  </Button>
+                ))}
+              </Flex>
+            </div>
+
             {message && (
               <Callout.Root
                 color={message.tone === "error" ? "red" : "green"}
@@ -529,12 +623,17 @@ export const LyricTimelineEditor = ({
                   return (
                     <Popover.Root
                       key={`${line.start}-${line.end}-${index}`}
-                      open={isSelected}
-                      onOpenChange={(open) =>
-                        setSelectedLineIndex(open ? index : null)
-                      }
+                      open={editingLineIndex === index}
+                      onOpenChange={(open) => {
+                        if (open) {
+                          setSelectedLineIndex(index);
+                          setEditingLineIndex(index);
+                        } else if (editingLineIndex === index) {
+                          setEditingLineIndex(null);
+                        }
+                      }}
                     >
-                      <Popover.Trigger>
+                      <Popover.Trigger asChild>
                         <div
                           className={styles.block}
                           data-active={isActive}
@@ -543,11 +642,18 @@ export const LyricTimelineEditor = ({
                           role="button"
                           tabIndex={0}
                           onClick={() => {
+                            if (selectedLineIndex === index) {
+                              setEditingLineIndex(index);
+                              return;
+                            }
+
                             setSelectedLineIndex(index);
+                            setEditingLineIndex(null);
                           }}
                           onKeyDown={(event) => {
                             if (event.key === "Enter") {
                               setSelectedLineIndex(index);
+                              setEditingLineIndex(index);
                             }
                           }}
                         >
@@ -558,6 +664,7 @@ export const LyricTimelineEditor = ({
                             onMouseDown={(event) =>
                               handleMouseDown(event, index, "start")
                             }
+                            onClick={(event) => event.stopPropagation()}
                           />
                           <div className={styles.blockText}>
                             <span className={styles.blockMain}>
@@ -574,6 +681,7 @@ export const LyricTimelineEditor = ({
                             onMouseDown={(event) =>
                               handleMouseDown(event, index, "end")
                             }
+                            onClick={(event) => event.stopPropagation()}
                           />
                         </div>
                       </Popover.Trigger>

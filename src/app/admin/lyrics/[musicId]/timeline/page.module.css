@@ -15,9 +15,15 @@
 }
 
 .titleGroup {
-  display: grid;
-  gap: 4px;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
   min-width: 0;
+}
+
+.backButton {
+  flex: 0 0 auto;
+  margin-top: 1px;
 }
 
 .titleRow {

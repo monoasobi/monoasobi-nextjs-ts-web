@@ -21,7 +21,7 @@
 
 .sidePanel {
   display: grid;
-  grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
   align-items: start;
   gap: 12px;
 }
@@ -33,6 +33,7 @@
 }
 
 .previewFrame {
+  position: relative;
   aspect-ratio: 16 / 9;
   overflow: hidden;
   border: 1px solid var(--gray-a5);
@@ -40,15 +41,68 @@
   background: var(--gray-12);
 }
 
+.previewOverlay {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  gap: 4px;
+  padding: 48px 24px 20px;
+  color: white;
+  text-align: center;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.72), transparent);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.85);
+}
+
+.previewOverlayJp,
+.previewOverlayReading,
+.previewOverlayKr {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+
+.previewOverlayJp {
+  font-size: 15px;
+}
+
+.previewOverlayReading {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.previewOverlayKr {
+  font-size: 20px;
+  font-weight: 800;
+}
+
 .previewControls {
   min-width: 0;
+  flex-wrap: wrap;
+}
+
+.volumeControl {
+  margin-left: auto;
+  min-width: 180px;
+}
+
+.volumeSlider {
+  width: 110px;
+}
+
+.volumeValue {
+  width: 28px;
+  text-align: right;
 }
 
 .controlPanel {
   display: grid;
-  grid-template-columns: minmax(160px, 220px) auto auto auto;
-  align-items: end;
+  align-content: start;
   gap: 10px;
+  min-height: 100%;
   padding: 12px;
   border: 1px solid var(--gray-a5);
   border-radius: 6px;
@@ -61,6 +115,14 @@
   gap: 5px;
   min-width: 0;
   flex: 1;
+}
+
+.exportPanel {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding-top: 4px;
+  border-top: 1px solid var(--gray-a5);
 }
 
 .timelineSection {
