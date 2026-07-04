@@ -23,6 +23,7 @@ import {
   getNormalizedLyrics,
 } from "./LyricTimelineEditor/timelineUtils";
 import { useTimelineResize } from "./LyricTimelineEditor/useTimelineResize";
+import { useTimelineSelection } from "./LyricTimelineEditor/useTimelineSelection";
 import { useTimelineShortcuts } from "./LyricTimelineEditor/useTimelineShortcuts";
 import { useTimelineZoom } from "./LyricTimelineEditor/useTimelineZoom";
 import styles from "./LyricTimelineEditor.module.css";
@@ -57,6 +58,7 @@ export const LyricTimelineEditor = ({
   const canManage = role === "admin";
   const previewRef = useRef<TimelineYouTubePreviewHandle>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
   const [draftLyrics, setDraftLyrics] = useState(() =>
     getNormalizedLyrics(lyricTrack.lyricJson),
   );
@@ -66,14 +68,13 @@ export const LyricTimelineEditor = ({
   const [pixelsPerSecond, setPixelsPerSecond] = useState(
     DEFAULT_PIXELS_PER_SECOND,
   );
-  const [selectedLineIndex, setSelectedLineIndex] = useState<number | null>(0);
+  const [selectedLineIndexes, setSelectedLineIndexes] = useState<number[]>([0]);
   const [editingLineIndex, setEditingLineIndex] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{
     tone: "success" | "error";
     text: string;
   } | null>(null);
-  const [isTimelineHot, setIsTimelineHot] = useState(false);
 
   const timelineStart = useMemo(
     () => getTimelineStart(draftLyrics, draftSync),
@@ -120,6 +121,24 @@ export const LyricTimelineEditor = ({
     setDraftLyrics,
   });
 
+  const {
+    consumeLineClick,
+    handleLineMouseDown,
+    handleTrackMouseDown,
+    selectionRect,
+    selectLine,
+  } = useTimelineSelection({
+    canManage,
+    draftLyrics,
+    draftSync,
+    pixelsPerSecond,
+    selectedLineIndexes,
+    setDraftLyrics,
+    setSelectedLineIndexes,
+    timelineStart,
+    trackRef,
+  });
+
   const { handleWheel, zoomTimeline } = useTimelineZoom({
     currentTime,
     pixelsPerSecond,
@@ -130,10 +149,9 @@ export const LyricTimelineEditor = ({
 
   useTimelineShortcuts({
     activeLineIndex,
-    isTimelineHot,
     pixelsPerSecond,
     previewRef,
-    onActiveLineSelect: setSelectedLineIndex,
+    onActiveLineSelect: selectLine,
     onZoom: zoomTimeline,
   });
 
@@ -201,11 +219,7 @@ export const LyricTimelineEditor = ({
   };
 
   return (
-    <div
-      className={styles.editor}
-      onMouseEnter={() => setIsTimelineHot(true)}
-      onMouseLeave={() => setIsTimelineHot(false)}
-    >
+    <div className={styles.editor}>
       <div className={styles.smallScreenNotice}>
         <Callout.Root color="amber" variant="soft">
           <Callout.Text>
@@ -244,16 +258,21 @@ export const LyricTimelineEditor = ({
           draftSync={draftSync}
           editingLineIndex={editingLineIndex}
           pixelsPerSecond={pixelsPerSecond}
-          selectedLineIndex={selectedLineIndex}
+          selectedLineIndexes={selectedLineIndexes}
+          selectionRect={selectionRect}
           timelineEnd={timelineEnd}
           timelineRef={timelineRef}
           timelineStart={timelineStart}
+          trackRef={trackRef}
           timelineWidth={timelineWidth}
+          onConsumeLineClick={consumeLineClick}
           onEditLine={setEditingLineIndex}
           onLineTimeChange={handleLineTimeChange}
+          onLineMouseDown={handleLineMouseDown}
           onResizeMouseDown={handleResizeMouseDown}
           onRulerClick={handleRulerClick}
-          onSelectLine={setSelectedLineIndex}
+          onSelectLine={selectLine}
+          onTrackMouseDown={handleTrackMouseDown}
           onUpdateLine={updateLine}
           canManage={canManage}
           onWheel={handleWheel}

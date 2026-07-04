@@ -61,6 +61,7 @@
   text-align: center;
   pointer-events: none;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.72), transparent);
+  backdrop-filter: blur(2px);
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.85);
 }
 
@@ -151,6 +152,7 @@
 .timelineCanvas {
   position: relative;
   min-height: 100%;
+  user-select: none;
   background-image: linear-gradient(
     to bottom,
     var(--gray-a2),
@@ -166,6 +168,7 @@
   border-bottom: 1px solid var(--gray-a5);
   background: color-mix(in srgb, var(--gray-1) 92%, transparent);
   cursor: crosshair;
+  user-select: none;
 }
 
 .tick {
@@ -181,13 +184,19 @@
   background: transparent;
   font-family: var(--code-font-family);
   font-size: 11px;
+  user-select: none;
   white-space: nowrap;
 }
 
 .track {
   position: relative;
-  height: 190px;
-  min-height: 190px;
+  height: 220px;
+  min-height: 220px;
+  cursor: crosshair;
+}
+
+.track[data-can-manage="false"] {
+  cursor: default;
 }
 
 .playhead {
@@ -215,18 +224,28 @@
 .block {
   position: absolute;
   top: 64px;
+  z-index: 3;
   display: grid;
   grid-template-columns: 8px minmax(0, 1fr) 8px;
   align-items: stretch;
-  height: 64px;
+  height: 84px;
   min-width: 24px;
   overflow: hidden;
   border: 1px solid var(--accent-a7);
   border-radius: 6px;
   background: var(--accent-a3);
   color: var(--accent-12);
-  cursor: pointer;
+  cursor: grab;
+  user-select: none;
   box-shadow: var(--shadow-1);
+}
+
+.selectionRect {
+  position: absolute;
+  z-index: 2;
+  border: 1px solid var(--accent-9);
+  background: var(--accent-a4);
+  pointer-events: none;
 }
 
 .block[data-active="true"] {
@@ -242,17 +261,19 @@
 
 .block[data-can-manage="false"] {
   grid-template-columns: minmax(0, 1fr);
+  cursor: pointer;
 }
 
 .blockText {
   display: grid;
   align-content: center;
-  gap: 3px;
+  gap: 2px;
   min-width: 0;
   padding: 6px 8px;
 }
 
 .blockMain,
+.blockReading,
 .blockSub {
   min-width: 0;
   overflow: hidden;
@@ -263,6 +284,12 @@
 .blockMain {
   font-size: 13px;
   font-weight: 700;
+}
+
+.blockReading {
+  color: var(--gray-12);
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .blockSub {

@@ -2,11 +2,10 @@
 
 import { useEffect, type RefObject } from "react";
 import type { TimelineYouTubePreviewHandle } from "../TimelineYouTubePreview";
-import { ZOOM_FACTOR, isEditableTarget } from "./timelineUtils";
+import { ZOOM_FACTOR, isButtonTarget, isEditableTarget } from "./timelineUtils";
 
 interface UseTimelineShortcutsParams {
   activeLineIndex: number;
-  isTimelineHot: boolean;
   pixelsPerSecond: number;
   previewRef: RefObject<TimelineYouTubePreviewHandle | null>;
   onActiveLineSelect: (index: number) => void;
@@ -15,7 +14,6 @@ interface UseTimelineShortcutsParams {
 
 export const useTimelineShortcuts = ({
   activeLineIndex,
-  isTimelineHot,
   pixelsPerSecond,
   previewRef,
   onActiveLineSelect,
@@ -23,11 +21,19 @@ export const useTimelineShortcuts = ({
 }: UseTimelineShortcutsParams) => {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (!isTimelineHot || isEditableTarget(event.target)) return;
+      const isEditable = isEditableTarget(event.target);
 
       if (event.code === "Space") {
+        if (isEditable) return;
+
         event.preventDefault();
+        event.stopPropagation();
         previewRef.current?.togglePlay();
+        return;
+      }
+
+      if (isEditable || isButtonTarget(event.target)) {
+        return;
       }
 
       if (event.code === "Enter" && activeLineIndex >= 0) {
@@ -46,11 +52,11 @@ export const useTimelineShortcuts = ({
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown, { capture: true });
+    return () =>
+      window.removeEventListener("keydown", handleKeyDown, { capture: true });
   }, [
     activeLineIndex,
-    isTimelineHot,
     onActiveLineSelect,
     onZoom,
     pixelsPerSecond,

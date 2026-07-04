@@ -2,10 +2,11 @@
 
 import {
   useCallback,
+  useEffect,
   type Dispatch,
   type RefObject,
+  type WheelEvent as ReactWheelEvent,
   type SetStateAction,
-  type WheelEvent,
 } from "react";
 import {
   MAX_PIXELS_PER_SECOND,
@@ -79,16 +80,39 @@ export const useTimelineZoom = ({
     ],
   );
 
-  const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
-    if (!event.metaKey) return;
+  const handleWheel = useCallback(
+    (event: WheelEvent) => {
+      if (!event.metaKey && !event.ctrlKey) return;
+
+      event.stopPropagation();
+      event.preventDefault();
+
+      const direction = event.deltaY > 0 ? -1 : 1;
+      const factor = Math.pow(ZOOM_FACTOR, direction);
+      zoomTimeline(pixelsPerSecond * factor, getAnchorTime(event.clientX));
+    },
+    [getAnchorTime, pixelsPerSecond, zoomTimeline],
+  );
+
+  useEffect(() => {
+    const timeline = timelineRef.current;
+    if (!timeline) return;
+
+    timeline.addEventListener("wheel", handleWheel, { passive: false });
+    return () => {
+      timeline.removeEventListener("wheel", handleWheel);
+    };
+  }, [handleWheel, timelineRef]);
+
+  const handleReactWheel = (event: ReactWheelEvent<HTMLDivElement>) => {
+    if (!event.metaKey && !event.ctrlKey) return;
+
     event.preventDefault();
-    const direction = event.deltaY > 0 ? -1 : 1;
-    const factor = Math.pow(ZOOM_FACTOR, direction);
-    zoomTimeline(pixelsPerSecond * factor, getAnchorTime(event.clientX));
+    event.stopPropagation();
   };
 
   return {
-    handleWheel,
+    handleWheel: handleReactWheel,
     zoomTimeline,
   };
 };

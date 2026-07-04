@@ -7,7 +7,14 @@ import {
   SpeakerWaveIcon,
   SpeakerXMarkIcon,
 } from "@heroicons/react/24/solid";
-import { Button, Flex, IconButton, Slider, Text, Tooltip } from "@radix-ui/themes";
+import {
+  Button,
+  Flex,
+  IconButton,
+  Slider,
+  Text,
+  Tooltip,
+} from "@radix-ui/themes";
 import {
   forwardRef,
   useCallback,
@@ -17,13 +24,15 @@ import {
   useState,
 } from "react";
 import ReactPlayer from "react-player";
-import { formatTime } from "./time";
 import styles from "./LyricTimelineEditor.module.css";
+import { formatTime } from "./time";
 
 const YOUTUBE_CONFIG = {
   color: "white" as const,
   rel: 0 as const,
   controls: 0,
+  fs: 0 as const,
+  cc_load_policy: 0 as const,
 };
 const VOLUME_LS_KEY = "monoasobi-video-volume";
 
@@ -212,12 +221,16 @@ export const TimelineYouTubePreview = forwardRef<
           playing={shouldPlay}
           volume={volume}
           muted={isMuted}
+          controls={false}
           config={{ youtube: YOUTUBE_CONFIG }}
           onReady={() => {
             isReadyRef.current = true;
             syncDuration();
 
-            if (hasStartedPlaybackRef.current && pendingSeekRef.current != null) {
+            if (
+              hasStartedPlaybackRef.current &&
+              pendingSeekRef.current != null
+            ) {
               const seekTime = pendingSeekRef.current;
               pendingSeekRef.current = null;
               applySeek(seekTime);
@@ -251,21 +264,23 @@ export const TimelineYouTubePreview = forwardRef<
           }}
         />
         <div className={styles.previewBlocker} onClick={togglePlay} />
-        {activeLine && (
-          <div className={styles.previewOverlay}>
-            {activeLine.jp && (
-              <p className={styles.previewOverlayJp}>{activeLine.jp}</p>
-            )}
-            {activeLine.jpReading && (
-              <p className={styles.previewOverlayReading}>
-                {activeLine.jpReading}
-              </p>
-            )}
-            {activeLine.kr && (
-              <p className={styles.previewOverlayKr}>{activeLine.kr}</p>
-            )}
-          </div>
-        )}
+        <div className={styles.previewOverlay}>
+          {activeLine && (
+            <>
+              {activeLine.jp && (
+                <p className={styles.previewOverlayJp}>{activeLine.jp}</p>
+              )}
+              {activeLine.jpReading && (
+                <p className={styles.previewOverlayReading}>
+                  {activeLine.jpReading}
+                </p>
+              )}
+              {activeLine.kr && (
+                <p className={styles.previewOverlayKr}>{activeLine.kr}</p>
+              )}
+            </>
+          )}
+        </div>
       </div>
       <Flex className={styles.previewControls} align="center" gap="2">
         <Button type="button" size="1" variant="soft" onClick={togglePlay}>

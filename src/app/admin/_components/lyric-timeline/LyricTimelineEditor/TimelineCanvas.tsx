@@ -20,13 +20,25 @@ interface TimelineCanvasProps {
   draftSync: number;
   editingLineIndex: number | null;
   pixelsPerSecond: number;
-  selectedLineIndex: number | null;
+  selectedLineIndexes: number[];
+  selectionRect: {
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+  } | null;
   timelineEnd: number;
   timelineRef: RefObject<HTMLDivElement | null>;
   timelineStart: number;
+  trackRef: RefObject<HTMLDivElement | null>;
   timelineWidth: number;
+  onConsumeLineClick: (index: number) => boolean;
   onEditLine: (index: number | null) => void;
   onLineTimeChange: (index: number, edge: TimelineEdge, value: string) => void;
+  onLineMouseDown: (
+    event: ReactMouseEvent<HTMLDivElement>,
+    index: number,
+  ) => void;
   onResizeMouseDown: (
     event: ReactMouseEvent<HTMLButtonElement>,
     index: number,
@@ -34,6 +46,7 @@ interface TimelineCanvasProps {
   ) => void;
   onRulerClick: (event: ReactMouseEvent<HTMLDivElement>) => void;
   onSelectLine: (index: number) => void;
+  onTrackMouseDown: (event: ReactMouseEvent<HTMLDivElement>) => void;
   onUpdateLine: (index: number, patch: Partial<LyricLine>) => void;
   onWheel: (event: React.WheelEvent<HTMLDivElement>) => void;
 }
@@ -46,16 +59,21 @@ export const TimelineCanvas = ({
   draftSync,
   editingLineIndex,
   pixelsPerSecond,
-  selectedLineIndex,
+  selectedLineIndexes,
+  selectionRect,
   timelineEnd,
   timelineRef,
   timelineStart,
+  trackRef,
   timelineWidth,
+  onConsumeLineClick,
   onEditLine,
   onLineTimeChange,
+  onLineMouseDown,
   onResizeMouseDown,
   onRulerClick,
   onSelectLine,
+  onTrackMouseDown,
   onUpdateLine,
   onWheel,
 }: TimelineCanvasProps) => {
@@ -85,7 +103,19 @@ export const TimelineCanvas = ({
             aria-label={`현재 시간 ${formatTime(currentTime)}`}
           />
 
-          <div className={styles.track}>
+          <div
+            className={styles.track}
+            data-can-manage={canManage}
+            ref={trackRef}
+            onMouseDown={onTrackMouseDown}
+          >
+            {selectionRect && (
+              <div
+                className={styles.selectionRect}
+                style={selectionRect}
+                aria-hidden="true"
+              />
+            )}
             {draftLyrics.map((line, index) => {
               const displayStart = getDisplayStart(line, draftSync);
               const displayEnd = getDisplayEnd(line, draftSync);
@@ -98,17 +128,18 @@ export const TimelineCanvas = ({
               return (
                 <TimelineLineBlock
                   key={`${line.start}-${line.end}-${index}`}
-                  displayStart={displayStart}
                   index={index}
                   canManage={canManage}
                   isActive={activeLineIndex === index}
                   isEditing={editingLineIndex === index}
-                  isSelected={selectedLineIndex === index}
+                  isSelected={selectedLineIndexes.includes(index)}
                   left={left}
                   line={line}
                   width={width}
+                  onConsumeClick={onConsumeLineClick}
                   onEdit={onEditLine}
                   onLineTimeChange={onLineTimeChange}
+                  onMouseDown={onLineMouseDown}
                   onResizeMouseDown={onResizeMouseDown}
                   onSelect={onSelectLine}
                   onUpdateLine={onUpdateLine}

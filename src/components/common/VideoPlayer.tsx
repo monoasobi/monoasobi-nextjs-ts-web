@@ -67,6 +67,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(
   ({ youtubeId, activeLine, onTimeUpdate }, ref) => {
     const playerRef = useRef<HTMLVideoElement | null>(null);
     const volumeWrapperRef = useRef<HTMLDivElement>(null);
+    const animationFrameRef = useRef<number | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [duration, setDuration] = useState(0);
     const [currentTime, setCurrentTime] = useState(0);
@@ -76,32 +77,55 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(
     const [showJp, setShowJp] = useState(true);
     const [showReading, setShowReading] = useState(false);
 
-    useEffect(() => {
-      setCurrentTime(0);
-      setIsPlaying(false);
-      setDuration(0);
-    }, [youtubeId]);
-
     const setPlayerRef = useCallback((player: HTMLVideoElement | null) => {
       playerRef.current = player;
     }, []);
+
+    const syncTime = useCallback(() => {
+      const player = playerRef.current;
+      if (!player) return;
+      const time = Number(player.currentTime.toFixed(3));
+      setCurrentTime(time);
+      onTimeUpdate(time);
+    }, [onTimeUpdate]);
+
+    const stopProgressLoop = useCallback(() => {
+      if (animationFrameRef.current == null) return;
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }, []);
+
+    const startProgressLoop = useCallback(() => {
+      stopProgressLoop();
+
+      const tick = () => {
+        syncTime();
+        animationFrameRef.current = requestAnimationFrame(tick);
+      };
+
+      animationFrameRef.current = requestAnimationFrame(tick);
+    }, [stopProgressLoop, syncTime]);
+
+    useEffect(() => {
+      stopProgressLoop();
+      setCurrentTime(0);
+      setIsPlaying(false);
+      setDuration(0);
+      onTimeUpdate(0);
+    }, [onTimeUpdate, stopProgressLoop, youtubeId]);
+
+    useEffect(() => () => stopProgressLoop(), [stopProgressLoop]);
 
     useImperativeHandle(ref, () => ({
       seekAndPlay(time: number) {
         const player = playerRef.current;
         if (!player) return;
         player.currentTime = time;
+        setCurrentTime(time);
+        onTimeUpdate(time);
         void player.play?.();
       },
     }));
-
-    const handleTimeUpdate = () => {
-      const player = playerRef.current;
-      if (!player) return;
-      const time = Number(player.currentTime.toFixed(3));
-      setCurrentTime(time);
-      onTimeUpdate(time);
-    };
 
     const handleDurationChange = () => {
       const player = playerRef.current;
@@ -172,12 +196,22 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(
               volume={volume}
               muted={isMuted}
               config={{ youtube: YOUTUBE_CONFIG }}
-              onTimeUpdate={handleTimeUpdate}
-              onSeeked={handleTimeUpdate}
+              onTimeUpdate={syncTime}
+              onSeeked={syncTime}
               onDurationChange={handleDurationChange}
-              onPlay={() => setIsPlaying(true)}
-              onPause={() => setIsPlaying(false)}
-              onEnded={() => setIsPlaying(false)}
+              onPlay={() => {
+                setIsPlaying(true);
+                startProgressLoop();
+              }}
+              onPause={() => {
+                setIsPlaying(false);
+                stopProgressLoop();
+                syncTime();
+              }}
+              onEnded={() => {
+                setIsPlaying(false);
+                stopProgressLoop();
+              }}
             />
           </div>
           <div className={styles.videoBlocker} onClick={handleTogglePlay} />
@@ -206,9 +240,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(
                 <p className={styles.overlayJp}>{activeLine.jp}</p>
               )}
               {showReading && activeLine.jpReading && (
-                <p className={styles.overlayReading}>
-                  {activeLine.jpReading}
-                </p>
+                <p className={styles.overlayReading}>{activeLine.jpReading}</p>
               )}
               {activeLine.kr && (
                 <p className={styles.overlayKr}>{activeLine.kr}</p>
@@ -252,10 +284,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(
                 <SpeakerWaveIcon />
               )}
             </button>
-            <div
-              className={styles.volumeTooltip}
-              data-show={showVolumeTooltip}
-            >
+            <div className={styles.volumeTooltip} data-show={showVolumeTooltip}>
               <input
                 className={styles.verticalVolumeInput}
                 type="range"

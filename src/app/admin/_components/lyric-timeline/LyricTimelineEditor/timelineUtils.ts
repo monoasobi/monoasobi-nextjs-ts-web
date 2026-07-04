@@ -9,9 +9,14 @@ export const isEditableTarget = (target: EventTarget | null) => {
   if (!(target instanceof HTMLElement)) return false;
   return Boolean(
     target.closest(
-      "input, textarea, select, button, [role='slider'], [contenteditable='true']",
+      "input, textarea, select, [role='slider'], [contenteditable='true']",
     ),
   );
+};
+
+export const isButtonTarget = (target: EventTarget | null) => {
+  if (!(target instanceof HTMLElement)) return false;
+  return Boolean(target.closest("button"));
 };
 
 export const getNormalizedLyrics = (lyrics: LyricLine[]) =>
