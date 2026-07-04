@@ -250,6 +250,7 @@ export const TimelineYouTubePreview = forwardRef<
             stopProgressLoop();
           }}
         />
+        <div className={styles.previewBlocker} onClick={togglePlay} />
         {activeLine && (
           <div className={styles.previewOverlay}>
             {activeLine.jp && (
