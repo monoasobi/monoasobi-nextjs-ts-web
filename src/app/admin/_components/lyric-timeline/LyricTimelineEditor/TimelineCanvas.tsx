@@ -1,7 +1,10 @@
 "use client";
 
 import type { LyricLine } from "@appTypes/lyric";
-import type { MouseEvent as ReactMouseEvent, RefObject } from "react";
+import {
+  type MouseEvent as ReactMouseEvent,
+  type RefObject,
+} from "react";
 import styles from "../LyricTimelineEditor.module.css";
 import {
   formatTime,
@@ -33,6 +36,7 @@ interface TimelineCanvasProps {
   trackRef: RefObject<HTMLDivElement | null>;
   timelineWidth: number;
   onConsumeLineClick: (index: number) => boolean;
+  onDeleteLine: (index: number) => void;
   onEditLine: (index: number | null) => void;
   onLineTimeChange: (index: number, edge: TimelineEdge, value: string) => void;
   onLineMouseDown: (
@@ -46,6 +50,7 @@ interface TimelineCanvasProps {
   ) => void;
   onRulerClick: (event: ReactMouseEvent<HTMLDivElement>) => void;
   onSelectLine: (index: number) => void;
+  onSplitLine: (index: number) => void;
   onTrackMouseDown: (event: ReactMouseEvent<HTMLDivElement>) => void;
   onUpdateLine: (index: number, patch: Partial<LyricLine>) => void;
   onWheel: (event: React.WheelEvent<HTMLDivElement>) => void;
@@ -67,12 +72,14 @@ export const TimelineCanvas = ({
   trackRef,
   timelineWidth,
   onConsumeLineClick,
+  onDeleteLine,
   onEditLine,
   onLineTimeChange,
   onLineMouseDown,
   onResizeMouseDown,
   onRulerClick,
   onSelectLine,
+  onSplitLine,
   onTrackMouseDown,
   onUpdateLine,
   onWheel,
@@ -130,6 +137,8 @@ export const TimelineCanvas = ({
                   key={`${line.start}-${line.end}-${index}`}
                   index={index}
                   canManage={canManage}
+                  currentTime={currentTime}
+                  draftSync={draftSync}
                   isActive={activeLineIndex === index}
                   isEditing={editingLineIndex === index}
                   isSelected={selectedLineIndexes.includes(index)}
@@ -137,11 +146,13 @@ export const TimelineCanvas = ({
                   line={line}
                   width={width}
                   onConsumeClick={onConsumeLineClick}
+                  onDelete={onDeleteLine}
                   onEdit={onEditLine}
                   onLineTimeChange={onLineTimeChange}
                   onMouseDown={onLineMouseDown}
                   onResizeMouseDown={onResizeMouseDown}
                   onSelect={onSelectLine}
+                  onSplit={onSplitLine}
                   onUpdateLine={onUpdateLine}
                 />
               );

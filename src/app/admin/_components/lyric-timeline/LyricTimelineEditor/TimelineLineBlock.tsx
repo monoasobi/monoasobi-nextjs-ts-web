@@ -9,6 +9,8 @@ import type { TimelineEdge } from "./useTimelineResize";
 
 interface TimelineLineBlockProps {
   canManage: boolean;
+  currentTime: number;
+  draftSync: number;
   index: number;
   isActive: boolean;
   isEditing: boolean;
@@ -17,6 +19,7 @@ interface TimelineLineBlockProps {
   line: LyricLine;
   width: number;
   onConsumeClick: (index: number) => boolean;
+  onDelete: (index: number) => void;
   onEdit: (index: number | null) => void;
   onLineTimeChange: (index: number, edge: TimelineEdge, value: string) => void;
   onMouseDown: (
@@ -29,11 +32,14 @@ interface TimelineLineBlockProps {
     edge: TimelineEdge,
   ) => void;
   onSelect: (index: number) => void;
+  onSplit: (index: number) => void;
   onUpdateLine: (index: number, patch: Partial<LyricLine>) => void;
 }
 
 export const TimelineLineBlock = ({
   canManage,
+  currentTime,
+  draftSync,
   index,
   isActive,
   isEditing,
@@ -42,11 +48,13 @@ export const TimelineLineBlock = ({
   line,
   width,
   onConsumeClick,
+  onDelete,
   onEdit,
   onLineTimeChange,
   onMouseDown,
   onResizeMouseDown,
   onSelect,
+  onSplit,
   onUpdateLine,
 }: TimelineLineBlockProps) => {
   const jpText = line.jp || `Line ${index + 1}`;
@@ -127,9 +135,13 @@ export const TimelineLineBlock = ({
       {canManage && (
         <Popover.Content width="360px" sideOffset={8}>
           <TimelineLinePopover
+            currentTime={currentTime}
+            draftSync={draftSync}
             index={index}
             line={line}
+            onDelete={onDelete}
             onLineTimeChange={onLineTimeChange}
+            onSplit={onSplit}
             onUpdateLine={onUpdateLine}
           />
         </Popover.Content>

@@ -32,6 +32,7 @@ import {
 } from "./TimelineYouTubePreview";
 import {
   DEFAULT_PIXELS_PER_SECOND,
+  MIN_LINE_DURATION,
   getDisplayEnd,
   getDisplayStart,
   getTimelineEnd,
@@ -113,6 +114,41 @@ export const LyricTimelineEditor = ({
         lineIndex === index ? { ...line, ...patch } : line,
       ),
     );
+  };
+
+  const splitLine = (index: number) => {
+    if (!canManage) return;
+
+    const line = draftLyrics[index];
+    if (!line) return;
+
+    const splitTime = roundTime(currentTime - draftSync);
+    const canSplit =
+      splitTime > line.start + MIN_LINE_DURATION &&
+      splitTime < line.end - MIN_LINE_DURATION;
+    if (!canSplit) return;
+
+    const nextLyrics = [
+      ...draftLyrics.slice(0, index),
+      { ...line, end: splitTime },
+      { ...line, start: splitTime },
+      ...draftLyrics.slice(index + 1),
+    ];
+    setDraftLyrics(nextLyrics);
+    setSelectedLineIndexes([index + 1]);
+    setEditingLineIndex(index + 1);
+  };
+
+  const deleteLine = (index: number) => {
+    if (!canManage) return;
+
+    const nextLyrics = draftLyrics.filter((_, lineIndex) => lineIndex !== index);
+    const nextIndex =
+      nextLyrics.length === 0 ? null : Math.min(index, nextLyrics.length - 1);
+
+    setDraftLyrics(nextLyrics);
+    setSelectedLineIndexes(nextIndex == null ? [] : [nextIndex]);
+    setEditingLineIndex(null);
   };
 
   const { handleLineTimeChange, handleResizeMouseDown } = useTimelineResize({
@@ -266,12 +302,14 @@ export const LyricTimelineEditor = ({
           trackRef={trackRef}
           timelineWidth={timelineWidth}
           onConsumeLineClick={consumeLineClick}
+          onDeleteLine={deleteLine}
           onEditLine={setEditingLineIndex}
           onLineTimeChange={handleLineTimeChange}
           onLineMouseDown={handleLineMouseDown}
           onResizeMouseDown={handleResizeMouseDown}
           onRulerClick={handleRulerClick}
           onSelectLine={selectLine}
+          onSplitLine={splitLine}
           onTrackMouseDown={handleTrackMouseDown}
           onUpdateLine={updateLine}
           canManage={canManage}
