@@ -22,12 +22,14 @@ const BLOCK_TOP = 64;
 const BLOCK_HEIGHT = 84;
 const DRAG_THRESHOLD = 3;
 
-type SelectionRect = {
+type SelectionBox = {
   left: number;
   top: number;
   width: number;
   height: number;
-} | null;
+};
+
+type SelectionRect = SelectionBox | null;
 
 type AreaSelectionState = {
   startX: number;
@@ -56,7 +58,7 @@ interface UseTimelineSelectionParams {
   trackRef: RefObject<HTMLDivElement | null>;
 }
 
-const getRect = (selection: AreaSelectionState): SelectionRect => ({
+const getRect = (selection: AreaSelectionState): SelectionBox => ({
   left: Math.min(selection.startX, selection.currentX),
   top: Math.min(selection.startY, selection.currentY),
   width: Math.abs(selection.currentX - selection.startX),

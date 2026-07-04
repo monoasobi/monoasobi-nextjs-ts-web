@@ -11,8 +11,8 @@ import {
   Text,
 } from "@radix-ui/themes";
 import { useRouter } from "next/navigation";
-import type { CSSProperties } from "react";
-import { useState } from "react";
+import type { CSSProperties, UIEvent } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AdminDocumentPanel } from "./AdminDocumentPanel";
 import styles from "./AdminPage.module.css";
 
@@ -32,21 +32,33 @@ export type SelectedNode =
   | { type: "newLyric"; musicId: number }
   | { type: "newBook" };
 
+interface StoredAdminDashboardState {
+  selectedNode: SelectedNode;
+  expandedMusicIds: number[];
+  scrollTop: number;
+}
+
 interface AdminDashboardProps {
   data: AdminDashboardData;
   role: AdminRole;
 }
 
+const ADMIN_DASHBOARD_STATE_KEY = "monoasobi-admin-dashboard-state";
+
 export const AdminDashboard = ({ data, role }: AdminDashboardProps) => {
   const router = useRouter();
   const canManage = role === "admin";
-  const [selectedNode, setSelectedNode] = useState<SelectedNode>({
-    type: "music",
-    id: data.musics[0]?.id ?? 0,
-  });
-  const [expandedMusicIds, setExpandedMusicIds] = useState<Set<number>>(
-    () => new Set(data.musics[0] ? [data.musics[0].id] : []),
+  const treeScrollRef = useRef<HTMLDivElement>(null);
+  const [initialState] = useState(() =>
+    getInitialAdminDashboardState(data, canManage),
   );
+  const [selectedNode, setSelectedNode] = useState<SelectedNode>(
+    initialState.selectedNode,
+  );
+  const [expandedMusicIds, setExpandedMusicIds] = useState<Set<number>>(
+    () => new Set(initialState.expandedMusicIds),
+  );
+  const [treeScrollTop, setTreeScrollTop] = useState(initialState.scrollTop);
 
   const novelsByMusicId = new Map<number, typeof data.novels>();
   const comicsByMusicId = new Map<number, typeof data.comics>();
@@ -66,6 +78,35 @@ export const AdminDashboard = ({ data, role }: AdminDashboardProps) => {
     comicsByMusicId.set(comic.musicId, comics);
   }
 
+  const resolvedSelectedNode = useMemo(
+    () =>
+      isValidSelectedNode(selectedNode, data, canManage)
+        ? selectedNode
+        : getDefaultSelectedNode(data),
+    [canManage, data, selectedNode],
+  );
+  const persistedExpandedMusicIds = useMemo(() => {
+    const musicIds = new Set(data.musics.map((music) => music.id));
+    const next = [...expandedMusicIds].filter((musicId) =>
+      musicIds.has(musicId),
+    );
+
+    return next.length > 0 || !data.musics[0] ? next : [data.musics[0].id];
+  }, [data, expandedMusicIds]);
+
+  useEffect(() => {
+    saveAdminDashboardState({
+      selectedNode: resolvedSelectedNode,
+      expandedMusicIds: persistedExpandedMusicIds,
+      scrollTop: treeScrollTop,
+    });
+  }, [persistedExpandedMusicIds, resolvedSelectedNode, treeScrollTop]);
+
+  useEffect(() => {
+    if (!initialState.scrollTop) return;
+    treeScrollRef.current?.scrollTo({ top: initialState.scrollTop });
+  }, [initialState.scrollTop]);
+
   const handleLogout = async () => {
     await fetch("/api/admin/auth/logout", { method: "POST" });
     router.refresh();
@@ -81,6 +122,10 @@ export const AdminDashboard = ({ data, role }: AdminDashboardProps) => {
       }
       return next;
     });
+  };
+
+  const handleTreeScroll = (event: UIEvent<HTMLDivElement>) => {
+    setTreeScrollTop(event.currentTarget.scrollTop);
   };
 
   return (
@@ -109,9 +154,11 @@ export const AdminDashboard = ({ data, role }: AdminDashboardProps) => {
       <section className={styles.console}>
         <Card className={styles.consoleSidebar}>
           <ScrollArea
+            ref={treeScrollRef}
             className={styles.treeScroll}
             type="auto"
             scrollbars="vertical"
+            onScroll={handleTreeScroll}
           >
             <div className={styles.tree}>
               <TreeSection
@@ -144,8 +191,8 @@ export const AdminDashboard = ({ data, role }: AdminDashboardProps) => {
                         meta={`${music.korTitle} / ${music.enTitle}`}
                         isExpanded={isExpanded}
                         isActive={
-                          selectedNode.type === "music" &&
-                          selectedNode.id === music.id
+                          resolvedSelectedNode.type === "music" &&
+                          resolvedSelectedNode.id === music.id
                         }
                         onToggle={() => toggleMusic(music.id)}
                         onSelect={() =>
@@ -210,8 +257,8 @@ export const AdminDashboard = ({ data, role }: AdminDashboardProps) => {
                               label={novel.title}
                               meta={novel.writer}
                               isActive={
-                                selectedNode.type === "novel" &&
-                                selectedNode.id === novel.id
+                                resolvedSelectedNode.type === "novel" &&
+                                resolvedSelectedNode.id === novel.id
                               }
                               onClick={() =>
                                 setSelectedNode({
@@ -230,8 +277,8 @@ export const AdminDashboard = ({ data, role }: AdminDashboardProps) => {
                               label={comic.title}
                               meta={`${comic.writer} / ${comic.length}p`}
                               isActive={
-                                selectedNode.type === "comic" &&
-                                selectedNode.id === comic.id
+                                resolvedSelectedNode.type === "comic" &&
+                                resolvedSelectedNode.id === comic.id
                               }
                               onClick={() =>
                                 setSelectedNode({
@@ -249,8 +296,8 @@ export const AdminDashboard = ({ data, role }: AdminDashboardProps) => {
                               label={music.title}
                               meta={`${lyricTrack.lineCount} lines`}
                               isActive={
-                                selectedNode.type === "lyric" &&
-                                selectedNode.id === music.id
+                                resolvedSelectedNode.type === "lyric" &&
+                                resolvedSelectedNode.id === music.id
                               }
                               onClick={() =>
                                 setSelectedNode({
@@ -292,8 +339,8 @@ export const AdminDashboard = ({ data, role }: AdminDashboardProps) => {
                     label={book.name}
                     meta={`${book.novels.length} novels`}
                     isActive={
-                      selectedNode.type === "book" &&
-                      selectedNode.id === book.id
+                      resolvedSelectedNode.type === "book" &&
+                      resolvedSelectedNode.id === book.id
                     }
                     onClick={() =>
                       setSelectedNode({ type: "book", id: book.id })
@@ -307,16 +354,152 @@ export const AdminDashboard = ({ data, role }: AdminDashboardProps) => {
 
         <Card className={styles.documentPanel}>
           <AdminDocumentPanel
-            key={getSelectedNodeKey(selectedNode)}
+            key={getSelectedNodeKey(resolvedSelectedNode)}
             data={data}
             role={role}
-            selectedNode={selectedNode}
+            selectedNode={resolvedSelectedNode}
             onSaved={() => router.refresh()}
           />
         </Card>
       </section>
     </div>
   );
+};
+
+const getInitialAdminDashboardState = (
+  data: AdminDashboardData,
+  canManage: boolean,
+): StoredAdminDashboardState => {
+  const fallback = getFallbackAdminDashboardState(data);
+  const stored = readAdminDashboardState();
+  if (!stored) return fallback;
+
+  const selectedNode = isValidSelectedNode(stored.selectedNode, data, canManage)
+    ? stored.selectedNode
+    : fallback.selectedNode;
+  const musicIds = new Set(data.musics.map((music) => music.id));
+  const expandedMusicIds = stored.expandedMusicIds.filter((musicId) =>
+    musicIds.has(musicId),
+  );
+
+  return {
+    selectedNode,
+    expandedMusicIds:
+      expandedMusicIds.length > 0 ? expandedMusicIds : fallback.expandedMusicIds,
+    scrollTop: stored.scrollTop ?? fallback.scrollTop,
+  };
+};
+
+const getFallbackAdminDashboardState = (
+  data: AdminDashboardData,
+): StoredAdminDashboardState => {
+  const firstMusicId = data.musics[0]?.id ?? 0;
+
+  return {
+    selectedNode: getDefaultSelectedNode(data),
+    expandedMusicIds: firstMusicId ? [firstMusicId] : [],
+    scrollTop: 0,
+  };
+};
+
+const getDefaultSelectedNode = (data: AdminDashboardData): SelectedNode => ({
+  type: "music",
+  id: data.musics[0]?.id ?? 0,
+});
+
+const readAdminDashboardState = (): StoredAdminDashboardState | null => {
+  try {
+    const value = sessionStorage.getItem(ADMIN_DASHBOARD_STATE_KEY);
+    if (!value) return null;
+
+    const parsed = JSON.parse(value);
+    if (!isStoredAdminDashboardState(parsed)) return null;
+
+    return parsed;
+  } catch {
+    return null;
+  }
+};
+
+const saveAdminDashboardState = (state: StoredAdminDashboardState) => {
+  try {
+    sessionStorage.setItem(ADMIN_DASHBOARD_STATE_KEY, JSON.stringify(state));
+  } catch {
+    // sessionStorage can be unavailable in private contexts.
+  }
+};
+
+const isStoredAdminDashboardState = (
+  value: unknown,
+): value is StoredAdminDashboardState => {
+  if (!value || typeof value !== "object") return false;
+
+  const state = value as Partial<StoredAdminDashboardState>;
+  return (
+    isSelectedNode(state.selectedNode) &&
+    Array.isArray(state.expandedMusicIds) &&
+    state.expandedMusicIds.every((id) => Number.isInteger(id)) &&
+    (state.scrollTop == null ||
+      (typeof state.scrollTop === "number" && Number.isFinite(state.scrollTop)))
+  );
+};
+
+const isSelectedNode = (value: unknown): value is SelectedNode => {
+  if (!value || typeof value !== "object") return false;
+
+  const node = value as Partial<SelectedNode>;
+  if (typeof node.type !== "string") return false;
+
+  switch (node.type) {
+    case "music":
+    case "novel":
+    case "comic":
+    case "lyric":
+    case "book":
+      return Number.isInteger(node.id);
+    case "newNovel":
+    case "newComic":
+    case "newLyric":
+      return Number.isInteger(node.musicId);
+    case "newMusic":
+    case "newBook":
+      return true;
+    default:
+      return false;
+  }
+};
+
+const isValidSelectedNode = (
+  node: SelectedNode,
+  data: AdminDashboardData,
+  canManage: boolean,
+) => {
+  switch (node.type) {
+    case "music":
+      return data.musics.some((music) => music.id === node.id);
+    case "novel":
+      return data.novels.some((novel) => novel.id === node.id);
+    case "comic":
+      return data.comics.some((comic) => comic.id === node.id);
+    case "lyric":
+      return data.lyricTracks.some((track) => track.musicId === node.id);
+    case "book":
+      return data.books.some((book) => book.id === node.id);
+    case "newMusic":
+    case "newBook":
+      return canManage;
+    case "newNovel":
+    case "newComic":
+      return (
+        canManage && data.musics.some((music) => music.id === node.musicId)
+      );
+    case "newLyric":
+      return (
+        canManage &&
+        data.musics.some((music) => music.id === node.musicId) &&
+        !data.lyricTracks.some((track) => track.musicId === node.musicId)
+      );
+  }
 };
 
 const TreeSection = ({

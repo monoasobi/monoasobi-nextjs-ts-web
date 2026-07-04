@@ -3,7 +3,7 @@
 import type { Music } from "@appTypes/music";
 import type { Novel } from "@appTypes/novel";
 import { privateReaderAtom } from "@atoms/privateReader.atom";
-import { sidebarAtom } from "@atoms/sidebar.atom";
+import { sidebarAtom, sidebarScrollTopAtom } from "@atoms/sidebar.atom";
 import { Badge, Flex, ScrollArea, Text } from "@radix-ui/themes";
 import { useAtomValue, useSetAtom } from "jotai";
 import Link from "next/link";
@@ -31,6 +31,7 @@ interface ItemProps {
 export const SidebarClient = ({ items }: SidebarClientProps) => {
   const isSidebar = useAtomValue(sidebarAtom);
   const setIsSidebar = useSetAtom(sidebarAtom);
+  const sidebarScrollTop = useAtomValue(sidebarScrollTopAtom);
   const pathname = usePathname();
   const params = useParams<{ id?: string }>();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -49,12 +50,13 @@ export const SidebarClient = ({ items }: SidebarClientProps) => {
       }
     };
 
-    const scrollTop = sessionStorage.getItem("sidebar");
-    if (scrollTop) scrollRef.current?.scrollTo({ top: Number(scrollTop) - 100 });
+    if (sidebarScrollTop) {
+      scrollRef.current?.scrollTo({ top: sidebarScrollTop - 100 });
+    }
 
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
-  }, [isSidebar, setIsSidebar]);
+  }, [isSidebar, setIsSidebar, sidebarScrollTop]);
 
   return (
     <>
@@ -112,12 +114,13 @@ const Item = ({ item, isActive }: ItemProps) => {
   const { music, novel } = item;
   const { korTitle, title, enTitle, specialPath } = music;
   const setIsSidebar = useSetAtom(sidebarAtom);
+  const setSidebarScrollTop = useSetAtom(sidebarScrollTopAtom);
   const hasPrivateReaderAccess = useAtomValue(privateReaderAtom);
 
   const { isPublished, translated, title: novelTitle } = novel;
   const closeHandler: MouseEventHandler<HTMLAnchorElement> = (event) => {
     if (window.innerWidth < 1024) setIsSidebar(false);
-    sessionStorage.setItem("sidebar", event.currentTarget.offsetTop.toString());
+    setSidebarScrollTop(event.currentTarget.offsetTop);
   };
 
   const href = specialPath ? `/${specialPath}` : `/novel/${novel.id}`;
