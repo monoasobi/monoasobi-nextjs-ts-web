@@ -7,8 +7,6 @@ import {
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-export const runtime = "nodejs";
-
 export const POST = async (request: Request) => {
   const body = (await request.json().catch(() => null)) as {
     password?: unknown;

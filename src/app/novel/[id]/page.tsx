@@ -1,6 +1,9 @@
 import { getBookPurchaseInfoById } from "@/server/queries/book";
 import { getLyricTrackByMusicId } from "@/server/queries/lyric";
-import { getNovelById } from "@/server/queries/novel";
+import {
+  getNovelStaticParams,
+  getNovelSummaryById,
+} from "@/server/queries/publicCatalog";
 import { createPageMetadata } from "@lib/metadata";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -10,12 +13,16 @@ interface NovelPageProps {
   params: Promise<{ id: string }>;
 }
 
+export const generateStaticParams = getNovelStaticParams;
+
 export const generateMetadata = async ({
   params,
 }: NovelPageProps): Promise<Metadata> => {
   const { id } = await params;
   const novelId = Number(id);
-  const data = Number.isInteger(novelId) ? await getNovelById(novelId) : null;
+  const data = Number.isInteger(novelId)
+    ? await getNovelSummaryById(novelId)
+    : null;
 
   if (!data) {
     return createPageMetadata({
@@ -35,7 +42,9 @@ export const generateMetadata = async ({
 export default async function NovelPage({ params }: NovelPageProps) {
   const { id } = await params;
   const novelId = Number(id);
-  const data = Number.isInteger(novelId) ? await getNovelById(novelId) : null;
+  const data = Number.isInteger(novelId)
+    ? await getNovelSummaryById(novelId)
+    : null;
 
   if (!data) notFound();
 

@@ -2,21 +2,17 @@ import {
   parseAdminPayload,
   parsePositiveId,
   requireAdminWriteAccess,
+  revalidatePublicCatalog,
 } from "@/app/api/admin/_utils";
 import { deleteBook, updateBook } from "@/server/mutations/admin";
 import { bookSchema } from "@/server/schemas/admin.schema";
 import { NextResponse } from "next/server";
 
-export const runtime = "nodejs";
-
 interface AdminBookRouteContext {
   params: Promise<{ id: string }>;
 }
 
-export const PUT = async (
-  request: Request,
-  context: AdminBookRouteContext,
-) => {
+export const PUT = async (request: Request, context: AdminBookRouteContext) => {
   const unauthorized = await requireAdminWriteAccess();
   if (unauthorized) return unauthorized;
 
@@ -36,6 +32,8 @@ export const PUT = async (
     return NextResponse.json({ error: "Book not found" }, { status: 404 });
   }
 
+  revalidatePublicCatalog();
+
   return NextResponse.json({ ok: true, book });
 };
 
@@ -54,6 +52,8 @@ export const DELETE = async (
   if (!book) {
     return NextResponse.json({ error: "Book not found" }, { status: 404 });
   }
+
+  revalidatePublicCatalog();
 
   return NextResponse.json({ ok: true, book });
 };

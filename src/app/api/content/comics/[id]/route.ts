@@ -1,8 +1,6 @@
 import { listR2ObjectKeys } from "@/server/storage";
 import { NextResponse } from "next/server";
 
-export const runtime = "nodejs";
-
 interface ComicRouteContext {
   params: Promise<{ id: string }>;
 }

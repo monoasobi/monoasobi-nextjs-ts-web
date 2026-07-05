@@ -2,12 +2,11 @@ import {
   parseAdminPayload,
   parsePositiveId,
   requireAdminWriteAccess,
+  revalidatePublicCatalog,
 } from "@/app/api/admin/_utils";
 import { deleteNovel, updateNovel } from "@/server/mutations/admin";
 import { novelSchema } from "@/server/schemas/admin.schema";
 import { NextResponse } from "next/server";
-
-export const runtime = "nodejs";
 
 interface AdminNovelRouteContext {
   params: Promise<{ id: string }>;
@@ -36,6 +35,8 @@ export const PUT = async (
     return NextResponse.json({ error: "Novel not found" }, { status: 404 });
   }
 
+  revalidatePublicCatalog();
+
   return NextResponse.json({ ok: true, novel });
 };
 
@@ -54,6 +55,8 @@ export const DELETE = async (
   if (!novel) {
     return NextResponse.json({ error: "Novel not found" }, { status: 404 });
   }
+
+  revalidatePublicCatalog();
 
   return NextResponse.json({ ok: true, novel });
 };

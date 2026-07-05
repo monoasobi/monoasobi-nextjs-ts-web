@@ -1,17 +1,17 @@
 import { ContentsContainer } from "@components/content/ContentsContainer";
 import { OnTheStage } from "@components/custom/OnTheStage";
 import { getLyricTrackByMusicId } from "@/server/queries/lyric";
-import { getMusicById } from "@/server/queries/music";
+import { getSpecialPageSummaryByMusicId } from "@/server/queries/publicCatalog";
 import { createPageMetadata } from "@lib/metadata";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
-export const dynamic = "force-dynamic";
+const ON_THE_STAGE_MUSIC_ID = 26;
 
 export const generateMetadata = async (): Promise<Metadata> => {
-  const music = await getMusicById(26);
-  const title = music?.korTitle ?? "On The Stage";
+  const data = await getSpecialPageSummaryByMusicId(ON_THE_STAGE_MUSIC_ID);
+  const title = data?.music.korTitle ?? "On The Stage";
 
   return createPageMetadata({
     title,
@@ -21,14 +21,14 @@ export const generateMetadata = async (): Promise<Metadata> => {
 };
 
 export default async function OnTheStagePage() {
-  const music = await getMusicById(26);
-  if (!music) notFound();
+  const data = await getSpecialPageSummaryByMusicId(ON_THE_STAGE_MUSIC_ID);
+  if (!data) notFound();
 
-  const lyricTrack = await getLyricTrackByMusicId(music.id);
+  const lyricTrack = await getLyricTrackByMusicId(data.music.id);
 
   return (
     <Suspense>
-      <ContentsContainer music={music} lyricTrack={lyricTrack}>
+      <ContentsContainer music={data.music} lyricTrack={lyricTrack}>
         <OnTheStage />
       </ContentsContainer>
     </Suspense>

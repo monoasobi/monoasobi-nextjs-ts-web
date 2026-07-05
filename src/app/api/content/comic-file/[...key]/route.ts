@@ -1,13 +1,14 @@
 import { getR2Object, r2BodyToResponseBody } from "@/server/storage";
 import { NextResponse } from "next/server";
 
-export const runtime = "nodejs";
-
 interface ComicFileRouteContext {
   params: Promise<{ key: string[] }>;
 }
 
-export const GET = async (_request: Request, context: ComicFileRouteContext) => {
+export const GET = async (
+  _request: Request,
+  context: ComicFileRouteContext,
+) => {
   const { key } = await context.params;
   const objectKey = decodeURIComponent(key.join("/"));
 

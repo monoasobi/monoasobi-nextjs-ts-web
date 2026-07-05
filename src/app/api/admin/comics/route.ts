@@ -1,12 +1,11 @@
 import {
   parseAdminPayload,
   requireAdminWriteAccess,
+  revalidatePublicCatalog,
 } from "@/app/api/admin/_utils";
 import { createComic } from "@/server/mutations/admin";
 import { comicSchema } from "@/server/schemas/admin.schema";
 import { NextResponse } from "next/server";
-
-export const runtime = "nodejs";
 
 export const POST = async (request: Request) => {
   const unauthorized = await requireAdminWriteAccess();
@@ -20,5 +19,7 @@ export const POST = async (request: Request) => {
   if (response) return response;
 
   const comic = await createComic(data);
+  revalidatePublicCatalog();
+
   return NextResponse.json({ ok: true, comic }, { status: 201 });
 };

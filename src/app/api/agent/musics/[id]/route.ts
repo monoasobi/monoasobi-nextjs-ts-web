@@ -2,8 +2,6 @@ import { requireAgentAuth } from "@/app/api/agent/_utils";
 import { getAgentMusicById } from "@/server/queries/agent";
 import { NextResponse } from "next/server";
 
-export const runtime = "nodejs";
-
 interface AgentMusicRouteContext {
   params: Promise<{ id: string }>;
 }

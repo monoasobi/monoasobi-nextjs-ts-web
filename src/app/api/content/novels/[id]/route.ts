@@ -1,12 +1,10 @@
-import { getR2Object, r2BodyToResponseBody } from "@/server/storage";
 import {
   PRIVATE_READER_COOKIE_NAME,
   verifyPrivateReaderSession,
 } from "@/server/auth/private-reader";
 import { getNovelContentAccess } from "@/server/queries/novel";
+import { getR2Object, r2BodyToResponseBody } from "@/server/storage";
 import { NextResponse } from "next/server";
-
-export const runtime = "nodejs";
 
 interface NovelRouteContext {
   params: Promise<{ id: string }>;
@@ -30,10 +28,7 @@ export const GET = async (request: Request, context: NovelRouteContext) => {
     .find((part) => part.startsWith(`${PRIVATE_READER_COOKIE_NAME}=`))
     ?.split("=")[1];
 
-  if (
-    novel?.isPublished &&
-    !verifyPrivateReaderSession(privateReaderSession)
-  ) {
+  if (novel?.isPublished && !verifyPrivateReaderSession(privateReaderSession)) {
     return new Response("Unauthorized", { status: 401 });
   }
 

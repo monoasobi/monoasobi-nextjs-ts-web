@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 const nextConfigDir = dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
+  cacheComponents: true,
   reactCompiler: {
     compilationMode: "infer",
   },

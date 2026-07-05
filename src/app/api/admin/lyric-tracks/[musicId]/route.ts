@@ -2,15 +2,11 @@ import {
   parseAdminPayload,
   parseNonNegativeId,
   requireAdminWriteAccess,
+  revalidatePublicCatalog,
 } from "@/app/api/admin/_utils";
-import {
-  deleteLyricTrack,
-  updateLyricTrack,
-} from "@/server/mutations/admin";
+import { deleteLyricTrack, updateLyricTrack } from "@/server/mutations/admin";
 import { lyricTrackSchema } from "@/server/schemas/admin.schema";
 import { NextResponse } from "next/server";
-
-export const runtime = "nodejs";
 
 interface AdminLyricTrackRouteContext {
   params: Promise<{ musicId: string }>;
@@ -45,6 +41,8 @@ export const PUT = async (
     );
   }
 
+  revalidatePublicCatalog();
+
   return NextResponse.json({ ok: true, lyricTrack });
 };
 
@@ -69,6 +67,8 @@ export const DELETE = async (
       { status: 404 },
     );
   }
+
+  revalidatePublicCatalog();
 
   return NextResponse.json({ ok: true, lyricTrack });
 };

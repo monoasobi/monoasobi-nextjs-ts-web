@@ -1,4 +1,6 @@
 import { ADMIN_COOKIE_NAME, verifyAdminSession } from "@/server/auth/admin";
+import { PUBLIC_CATALOG_CACHE_TAG } from "@/server/queries/publicCatalog";
+import { revalidateTag } from "next/cache";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import type { z } from "zod";
@@ -83,4 +85,8 @@ export const parseNonNegativeId = (value: string, label: string) => {
   }
 
   return { id, response: null };
+};
+
+export const revalidatePublicCatalog = () => {
+  revalidateTag(PUBLIC_CATALOG_CACHE_TAG, "max");
 };

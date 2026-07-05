@@ -1,4 +1,6 @@
 import { db } from "@/server/db";
+import { cacheLife, cacheTag } from "next/cache";
+import { PUBLIC_CATALOG_CACHE_TAG } from "./publicCatalog";
 
 export const getBookById = async (id: number) => {
   return db.query.books.findFirst({
@@ -15,6 +17,10 @@ export const getBookById = async (id: number) => {
 };
 
 export const getBookPurchaseInfoById = async (id: number) => {
+  "use cache";
+  cacheTag(PUBLIC_CATALOG_CACHE_TAG);
+  cacheLife("hours");
+
   const book = await db.query.books.findFirst({
     where: (books, { eq }) => eq(books.id, id),
     with: {

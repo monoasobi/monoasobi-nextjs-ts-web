@@ -1,5 +1,8 @@
-import { getComicById } from "@/server/queries/comic";
 import { getLyricTrackByMusicId } from "@/server/queries/lyric";
+import {
+  getComicStaticParams,
+  getComicSummaryById,
+} from "@/server/queries/publicCatalog";
 import { ComicReader } from "@components/content/ComicReader";
 import { ContentsContainer } from "@components/content/ContentsContainer";
 import { createPageMetadata } from "@lib/metadata";
@@ -11,12 +14,16 @@ interface ComicPageProps {
   params: Promise<{ id: string }>;
 }
 
+export const generateStaticParams = getComicStaticParams;
+
 export const generateMetadata = async ({
   params,
 }: ComicPageProps): Promise<Metadata> => {
   const { id } = await params;
   const comicId = Number(id);
-  const data = Number.isInteger(comicId) ? await getComicById(comicId) : null;
+  const data = Number.isInteger(comicId)
+    ? await getComicSummaryById(comicId)
+    : null;
 
   if (!data) {
     return createPageMetadata({
@@ -36,7 +43,9 @@ export const generateMetadata = async ({
 export default async function ComicPage({ params }: ComicPageProps) {
   const { id } = await params;
   const comicId = Number(id);
-  const data = Number.isInteger(comicId) ? await getComicById(comicId) : null;
+  const data = Number.isInteger(comicId)
+    ? await getComicSummaryById(comicId)
+    : null;
 
   if (!data) notFound();
   const lyricTrack = await getLyricTrackByMusicId(data.music.id);

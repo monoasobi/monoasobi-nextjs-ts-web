@@ -4,9 +4,17 @@ import { cookies } from "next/headers";
 import { AdminDashboard } from "./_components/AdminDashboard";
 import { AdminLogin } from "./_components/AdminLogin";
 
-export const dynamic = "force-dynamic";
+import { Suspense } from "react";
 
-export default async function AdminPage() {
+export default function AdminPage() {
+  return (
+    <Suspense fallback={null}>
+      <AdminPageContent />
+    </Suspense>
+  );
+}
+
+async function AdminPageContent() {
   const cookieStore = await cookies();
   const session = cookieStore.get(ADMIN_COOKIE_NAME)?.value;
   const adminSession = verifyAdminSession(session);

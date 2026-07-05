@@ -2,12 +2,11 @@ import {
   parseAdminPayload,
   parseNonNegativeId,
   requireAdminWriteAccess,
+  revalidatePublicCatalog,
 } from "@/app/api/admin/_utils";
 import { deleteMusic, updateMusic } from "@/server/mutations/admin";
 import { musicSchema } from "@/server/schemas/admin.schema";
 import { NextResponse } from "next/server";
-
-export const runtime = "nodejs";
 
 interface AdminMusicRouteContext {
   params: Promise<{ id: string }>;
@@ -36,6 +35,8 @@ export const PUT = async (
     return NextResponse.json({ error: "Music not found" }, { status: 404 });
   }
 
+  revalidatePublicCatalog();
+
   return NextResponse.json({ ok: true, music: updated });
 };
 
@@ -54,6 +55,8 @@ export const DELETE = async (
   if (!deleted) {
     return NextResponse.json({ error: "Music not found" }, { status: 404 });
   }
+
+  revalidatePublicCatalog();
 
   return NextResponse.json({ ok: true, music: deleted });
 };

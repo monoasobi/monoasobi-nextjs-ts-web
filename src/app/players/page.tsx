@@ -1,18 +1,17 @@
 import { ContentsContainer } from "@components/content/ContentsContainer";
 import { Players } from "@components/custom/Players";
 import { getLyricTrackByMusicId } from "@/server/queries/lyric";
-import { getMusicById } from "@/server/queries/music";
-import { getNovelByMusicId } from "@/server/queries/novel";
+import { getSpecialPageSummaryByMusicId } from "@/server/queries/publicCatalog";
 import { createPageMetadata } from "@lib/metadata";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
-export const dynamic = "force-dynamic";
+const PLAYERS_MUSIC_ID = 29;
 
 export const generateMetadata = async (): Promise<Metadata> => {
-  const music = await getMusicById(29);
-  const title = music?.korTitle ?? "群青";
+  const data = await getSpecialPageSummaryByMusicId(PLAYERS_MUSIC_ID);
+  const title = data?.music.korTitle ?? "群青";
 
   return createPageMetadata({
     title,
@@ -22,20 +21,17 @@ export const generateMetadata = async (): Promise<Metadata> => {
 };
 
 export default async function PlayersPage() {
-  const music = await getMusicById(29);
-  if (!music) notFound();
+  const data = await getSpecialPageSummaryByMusicId(PLAYERS_MUSIC_ID);
+  if (!data) notFound();
 
-  const [novel, lyricTrack] = await Promise.all([
-    getNovelByMusicId(music.id),
-    getLyricTrackByMusicId(music.id),
-  ]);
+  const lyricTrack = await getLyricTrackByMusicId(data.music.id);
 
   return (
     <Suspense>
       <ContentsContainer
-        music={music}
+        music={data.music}
         lyricTrack={lyricTrack}
-        content={novel?.novel}
+        content={data.novel}
       >
         <Players />
       </ContentsContainer>

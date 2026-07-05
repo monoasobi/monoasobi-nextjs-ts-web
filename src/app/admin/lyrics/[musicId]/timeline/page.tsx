@@ -5,17 +5,26 @@ import { Callout, Heading, IconButton, Text } from "@radix-ui/themes";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { AdminLogin } from "../../../_components/AdminLogin";
 import { LyricTimelineEditor } from "../../../_components/lyric-timeline/LyricTimelineEditor";
 import styles from "./page.module.css";
-
-export const dynamic = "force-dynamic";
 
 interface AdminLyricTimelinePageProps {
   params: Promise<{ musicId: string }>;
 }
 
-export default async function AdminLyricTimelinePage({
+export default function AdminLyricTimelinePage(
+  props: AdminLyricTimelinePageProps,
+) {
+  return (
+    <Suspense fallback={null}>
+      <AdminLyricTimelinePageContent {...props} />
+    </Suspense>
+  );
+}
+
+async function AdminLyricTimelinePageContent({
   params,
 }: AdminLyricTimelinePageProps) {
   const cookieStore = await cookies();
@@ -66,8 +75,8 @@ export default async function AdminLyricTimelinePage({
         {!lyricTrack && (
           <Callout.Root className={styles.status} color="amber" variant="soft">
             <Callout.Text>
-              이 곡의 lyricTrack이 아직 없습니다. `/admin`에서 lyricTrack을
-              먼저 생성해주세요.
+              이 곡의 lyricTrack이 아직 없습니다. `/admin`에서 lyricTrack을 먼저
+              생성해주세요.
             </Callout.Text>
           </Callout.Root>
         )}

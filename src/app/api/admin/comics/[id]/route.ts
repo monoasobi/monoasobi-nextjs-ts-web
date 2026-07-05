@@ -2,12 +2,11 @@ import {
   parseAdminPayload,
   parsePositiveId,
   requireAdminWriteAccess,
+  revalidatePublicCatalog,
 } from "@/app/api/admin/_utils";
 import { deleteComic, updateComic } from "@/server/mutations/admin";
 import { comicSchema } from "@/server/schemas/admin.schema";
 import { NextResponse } from "next/server";
-
-export const runtime = "nodejs";
 
 interface AdminComicRouteContext {
   params: Promise<{ id: string }>;
@@ -36,6 +35,8 @@ export const PUT = async (
     return NextResponse.json({ error: "Comic not found" }, { status: 404 });
   }
 
+  revalidatePublicCatalog();
+
   return NextResponse.json({ ok: true, comic });
 };
 
@@ -54,6 +55,8 @@ export const DELETE = async (
   if (!comic) {
     return NextResponse.json({ error: "Comic not found" }, { status: 404 });
   }
+
+  revalidatePublicCatalog();
 
   return NextResponse.json({ ok: true, comic });
 };
