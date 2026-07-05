@@ -1,5 +1,6 @@
 "use client";
 
+import { useHydrated } from "@/hooks/useHydrated";
 import type { Music } from "@appTypes/music";
 import type { Novel } from "@appTypes/novel";
 import { privateReaderAtom } from "@atoms/privateReader.atom";
@@ -30,8 +31,10 @@ interface ItemProps {
 }
 
 export const SidebarClient = ({ items }: SidebarClientProps) => {
-  const isSidebar = useAtomValue(sidebarAtom);
-  const setIsSidebar = useSetAtom(sidebarAtom);
+  const [isSidebar, setIsSidebar] = useAtom(sidebarAtom);
+  const isHydrated = useHydrated();
+
+  const isSidebarOpen = isHydrated ? isSidebar : false;
   const [sidebarScrollTop, setSidebarScrollTop] = useAtom(sidebarScrollTopAtom);
   const pathname = usePathname();
   const params = useParams<{ id?: string }>();
@@ -39,7 +42,7 @@ export const SidebarClient = ({ items }: SidebarClientProps) => {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (!isSidebar) return;
+      if (!isSidebarOpen) return;
 
       const width = window.innerWidth;
       if (
@@ -69,19 +72,25 @@ export const SidebarClient = ({ items }: SidebarClientProps) => {
       scrollEl.removeEventListener("scroll", handleScroll);
       document.removeEventListener("click", handleClickOutside);
     };
-  }, [isSidebar, setIsSidebar, setSidebarScrollTop, sidebarScrollTop]);
+  }, [
+    isSidebar,
+    setIsSidebar,
+    setSidebarScrollTop,
+    sidebarScrollTop,
+    isSidebarOpen,
+  ]);
 
   return (
     <>
       <button
         type="button"
         className={styles.overlay}
-        data-open={isSidebar}
-        aria-hidden={!isSidebar}
-        tabIndex={isSidebar ? 0 : -1}
+        data-open={isSidebarOpen}
+        aria-hidden={!isSidebarOpen}
+        tabIndex={isSidebarOpen ? 0 : -1}
         onClick={() => setIsSidebar(false)}
       />
-      <aside className={styles.container} data-open={isSidebar}>
+      <aside className={styles.container} data-open={isSidebarOpen}>
         <ScrollArea
           ref={scrollRef}
           type="auto"

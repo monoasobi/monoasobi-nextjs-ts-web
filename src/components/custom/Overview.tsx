@@ -61,12 +61,13 @@ export const Overview = () => {
     <ScrollArea className={styles.container} scrollbars="vertical">
       <main className={styles.page}>
         <section className={styles.hero}>
-          <Flex className={styles.heroInner} direction="column" gap="5">
+          <Flex className={styles.heroInner} direction="column" gap="4">
             <Flex direction="column" gap="3">
-              <Heading as="h1" size="8">
-                YOASOBI 음악 너머의 이야기를 발견하다
+              <Heading as="h1" size="7">
+                YOASOBI의 음악 너머, <br />
+                이야기를 발견하다
               </Heading>
-              <Text className={styles.heroCopy} size="4">
+              <Text className={styles.heroCopy} size="3">
                 모노아소비는 요아소비(YOASOBI)의 음악이 원작으로 삼고 있는
                 소설과 번역본, 가사를 한곳에 모아 제공하는 사이트입니다.
               </Text>
@@ -86,13 +87,9 @@ export const Overview = () => {
                 </Heading>
               </Flex>
               <Flex direction="column" gap="3">
-                <Image
-                  className={styles.logo}
-                  src={LOGO_IMAGE}
-                  alt="logo"
-                  width={400}
-                  height={128}
-                />
+                <figure className={styles.logo}>
+                  <Image src={LOGO_IMAGE} alt="logo" fill />
+                </figure>
                 <Text size="3">
                   모노아소비는 요아소비(YOASOBI)의 음악이 원작으로 삼고 있는
                   소설과 그 번역본을 한곳에 모아 제공하는 사이트입니다.
