@@ -5,7 +5,8 @@ import type { Novel } from "@appTypes/novel";
 import { privateReaderAtom } from "@atoms/privateReader.atom";
 import { sidebarAtom, sidebarScrollTopAtom } from "@atoms/sidebar.atom";
 import { Badge, Flex, ScrollArea, Text } from "@radix-ui/themes";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import Image from "next/image";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import type { MouseEventHandler } from "react";
@@ -31,7 +32,7 @@ interface ItemProps {
 export const SidebarClient = ({ items }: SidebarClientProps) => {
   const isSidebar = useAtomValue(sidebarAtom);
   const setIsSidebar = useSetAtom(sidebarAtom);
-  const sidebarScrollTop = useAtomValue(sidebarScrollTopAtom);
+  const [sidebarScrollTop, setSidebarScrollTop] = useAtom(sidebarScrollTopAtom);
   const pathname = usePathname();
   const params = useParams<{ id?: string }>();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -50,13 +51,25 @@ export const SidebarClient = ({ items }: SidebarClientProps) => {
       }
     };
 
-    if (sidebarScrollTop) {
-      scrollRef.current?.scrollTo({ top: sidebarScrollTop - 100 });
-    }
+    const scrollEl = scrollRef.current;
 
+    if (!scrollEl) return;
+
+    scrollEl.scrollTo({ top: sidebarScrollTop });
+
+    const handleScroll = () => {
+      setSidebarScrollTop(scrollEl.scrollTop);
+    };
+
+    scrollEl.addEventListener("scroll", handleScroll, {
+      passive: true,
+    });
     document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, [isSidebar, setIsSidebar, sidebarScrollTop]);
+    return () => {
+      scrollEl.removeEventListener("scroll", handleScroll);
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [isSidebar, setIsSidebar, setSidebarScrollTop, sidebarScrollTop]);
 
   return (
     <>
@@ -114,13 +127,12 @@ const Item = ({ item, isActive }: ItemProps) => {
   const { music, novel } = item;
   const { korTitle, title, enTitle, specialPath } = music;
   const setIsSidebar = useSetAtom(sidebarAtom);
-  const setSidebarScrollTop = useSetAtom(sidebarScrollTopAtom);
+
   const hasPrivateReaderAccess = useAtomValue(privateReaderAtom);
 
   const { isPublished, translated, title: novelTitle } = novel;
-  const closeHandler: MouseEventHandler<HTMLAnchorElement> = (event) => {
+  const closeHandler: MouseEventHandler<HTMLAnchorElement> = () => {
     if (window.innerWidth < 1024) setIsSidebar(false);
-    setSidebarScrollTop(event.currentTarget.offsetTop);
   };
 
   const href = specialPath ? `/${specialPath}` : `/novel/${novel.id}`;
@@ -137,11 +149,12 @@ const Item = ({ item, isActive }: ItemProps) => {
       data-active={isActive}
       data-tone={tone}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <Image
         src={`/images/albumart/${music.id}.webp`}
         alt={music.title}
         className={styles.artwork}
+        width={72}
+        height={72}
       />
       <span className={styles.itemText}>
         <span className={styles.textRow}>

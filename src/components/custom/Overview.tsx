@@ -1,10 +1,6 @@
-"use client";
-
-/* eslint-disable @next/next/no-img-element */
-
-import { HeartIcon } from "@heroicons/react/24/outline";
 import {
   BookOpenIcon,
+  HeartIcon,
   LanguageIcon,
   MusicalNoteIcon,
   PlayCircleIcon,
@@ -19,6 +15,7 @@ import {
   ScrollArea,
   Text,
 } from "@radix-ui/themes";
+import Image from "next/image";
 import Link from "next/link";
 import styles from "./Overview.module.css";
 
@@ -89,15 +86,21 @@ export const Overview = () => {
                 </Heading>
               </Flex>
               <Flex direction="column" gap="3">
-                <img className={styles.logo} src={LOGO_IMAGE} alt="logo" />
+                <Image
+                  className={styles.logo}
+                  src={LOGO_IMAGE}
+                  alt="logo"
+                  width={400}
+                  height={128}
+                />
                 <Text size="3">
                   모노아소비는 요아소비(YOASOBI)의 음악이 원작으로 삼고 있는
                   소설과 그 번역본을 한곳에 모아 제공하는 사이트입니다.
                 </Text>
                 <Text size="3">
-                  모노아소비는 더 많은 사람들이 원작 소설을 즐길 수 있도록
-                  돕고, 요아소비의 음악을 더욱 깊이 사랑하게 되기를 바라는
-                  마음으로 운영됩니다.
+                  모노아소비는 더 많은 사람들이 원작 소설을 즐길 수 있도록 돕고,
+                  요아소비의 음악을 더욱 깊이 사랑하게 되기를 바라는 마음으로
+                  운영됩니다.
                 </Text>
                 <Text size="3">
                   사이트에 게시된 모든 원작 소설과 번역본의 저작권은 각각의
@@ -165,7 +168,12 @@ export const Overview = () => {
             </Flex>
 
             <Card className={styles.routeCard}>
-              <Flex className={styles.routeStep} align="center" justify="between" gap="4">
+              <Flex
+                className={styles.routeStep}
+                align="center"
+                justify="between"
+                gap="4"
+              >
                 <Text size="3" weight="bold">
                   소설을 읽는다
                 </Text>
@@ -173,7 +181,12 @@ export const Overview = () => {
                   <BookOpenIcon width={24} height={24} />
                 </div>
               </Flex>
-              <Flex className={styles.routeStep} align="center" justify="between" gap="4">
+              <Flex
+                className={styles.routeStep}
+                align="center"
+                justify="between"
+                gap="4"
+              >
                 <Text size="3" weight="bold">
                   번역된 가사와 함께 노래를 들으며 아야세의 작사 실력에 감탄한다
                 </Text>
@@ -181,7 +194,12 @@ export const Overview = () => {
                   <MusicalNoteIcon width={24} height={24} />
                 </div>
               </Flex>
-              <Flex className={styles.routeStep} align="center" justify="between" gap="4">
+              <Flex
+                className={styles.routeStep}
+                align="center"
+                justify="between"
+                gap="4"
+              >
                 <Text size="3" weight="bold">
                   뮤직비디오를 감상하며 소설에 등장한 디테일을 발견하고 감탄한다
                 </Text>
@@ -189,7 +207,12 @@ export const Overview = () => {
                   <PlayCircleIcon width={24} height={24} />
                 </div>
               </Flex>
-              <Flex className={styles.routeStep} align="center" justify="between" gap="4">
+              <Flex
+                className={styles.routeStep}
+                align="center"
+                justify="between"
+                gap="4"
+              >
                 <Text size="3" weight="bold" color="red">
                   입덕완료!
                 </Text>
@@ -204,7 +227,11 @@ export const Overview = () => {
         <section className={styles.section}>
           <Flex className={styles.sectionInner} direction="column" gap="4">
             <Flex align="center" gap="3">
-              <Flex className={styles.iconShell} align="center" justify="center">
+              <Flex
+                className={styles.iconShell}
+                align="center"
+                justify="center"
+              >
                 <LanguageIcon width={22} height={22} />
               </Flex>
               <Flex direction="column" gap="1">
