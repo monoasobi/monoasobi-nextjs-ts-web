@@ -5,6 +5,14 @@ export const ZOOM_FACTOR = 1.18;
 export const TICK_SECONDS = 5;
 export const NONE_CALL_TYPE = "NONE";
 
+export const getTimelineGridInterval = (pixelsPerSecond: number) => {
+  if (pixelsPerSecond >= 240) return 0.01;
+  if (pixelsPerSecond >= 120) return 0.05;
+  if (pixelsPerSecond >= 60) return 0.1;
+  if (pixelsPerSecond >= 30) return 0.5;
+  return 1;
+};
+
 export const isEditableTarget = (target: EventTarget | null) => {
   if (!(target instanceof HTMLElement)) return false;
   return Boolean(

@@ -2,6 +2,8 @@
 
 import type { LyricLine } from "@appTypes/lyric";
 import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
   PauseIcon,
   PlayIcon,
   SpeakerWaveIcon,
@@ -25,7 +27,7 @@ import {
 } from "react";
 import ReactPlayer from "react-player";
 import styles from "./LyricTimelineEditor.module.css";
-import { formatTime } from "./time";
+import { formatTime, roundTime } from "./time";
 
 const YOUTUBE_CONFIG = {
   color: "white" as const,
@@ -58,6 +60,7 @@ const setStoredVolume = (volume: number) => {
 
 export interface TimelineYouTubePreviewHandle {
   seek(time: number): void;
+  seekBy(delta: number): void;
   seekAndPlay(time: number): void;
   seekAndPause(time: number): void;
   play(): void;
@@ -173,9 +176,18 @@ export const TimelineYouTubePreview = forwardRef<
     animationFrameRef.current = requestAnimationFrame(tick);
   };
 
+  const seekByTime = (delta: number) => {
+    const nextTime = Math.max(0, roundTime(currentTime + delta));
+    pause();
+    applySeek(duration > 0 ? Math.min(nextTime, duration) : nextTime);
+  };
+
   useImperativeHandle(ref, () => ({
     seek(time: number) {
       applySeek(time);
+    },
+    seekBy(delta: number) {
+      seekByTime(delta);
     },
     seekAndPlay(time: number) {
       applySeek(time);
@@ -294,6 +306,34 @@ export const TimelineYouTubePreview = forwardRef<
         <Text size="1" color="gray">
           {formatTime(currentTime)} / {formatTime(duration)}
         </Text>
+        <Flex align="center" gap="1">
+          <Tooltip content="0.01초 이전">
+            <IconButton
+              type="button"
+              size="1"
+              variant="soft"
+              color="gray"
+              onClick={() => seekByTime(-0.01)}
+              disabled={currentTime <= 0}
+              aria-label="0.01초 이전으로 이동"
+            >
+              <ChevronLeftIcon width="14" height="14" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip content="0.01초 이후">
+            <IconButton
+              type="button"
+              size="1"
+              variant="soft"
+              color="gray"
+              onClick={() => seekByTime(0.01)}
+              disabled={duration > 0 && currentTime >= duration}
+              aria-label="0.01초 이후로 이동"
+            >
+              <ChevronRightIcon width="14" height="14" />
+            </IconButton>
+          </Tooltip>
+        </Flex>
         <Flex className={styles.volumeControl} align="center" gap="2">
           <Tooltip content={isMuted || volume === 0 ? "음소거 해제" : "음소거"}>
             <IconButton

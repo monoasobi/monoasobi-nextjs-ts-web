@@ -32,6 +32,19 @@ export const useTimelineShortcuts = ({
         return;
       }
 
+      if (
+        !isEditable &&
+        !event.metaKey &&
+        !event.ctrlKey &&
+        !event.altKey &&
+        (event.key === "ArrowLeft" || event.key === "ArrowRight")
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+        previewRef.current?.seekBy(event.key === "ArrowLeft" ? -0.01 : 0.01);
+        return;
+      }
+
       if (isEditable || isButtonTarget(event.target)) {
         return;
       }

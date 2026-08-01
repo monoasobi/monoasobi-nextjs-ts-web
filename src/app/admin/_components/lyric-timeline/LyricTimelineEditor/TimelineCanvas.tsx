@@ -4,6 +4,7 @@ import type { LyricLine } from "@appTypes/lyric";
 import {
   type MouseEvent as ReactMouseEvent,
   type RefObject,
+  type CSSProperties,
 } from "react";
 import styles from "../LyricTimelineEditor.module.css";
 import {
@@ -11,7 +12,10 @@ import {
   getDisplayEnd,
   getDisplayStart,
 } from "../time";
-import { getTimelineTicks } from "./timelineUtils";
+import {
+  getTimelineGridInterval,
+  getTimelineTicks,
+} from "./timelineUtils";
 import { TimelineLineBlock } from "./TimelineLineBlock";
 import type { TimelineEdge } from "./useTimelineResize";
 
@@ -87,6 +91,10 @@ export const TimelineCanvas = ({
   const timelineToPixel = (time: number) =>
     (time - timelineStart) * pixelsPerSecond;
   const ticks = getTimelineTicks(timelineStart, timelineEnd);
+  const gridInterval = getTimelineGridInterval(pixelsPerSecond);
+  const trackStyle = {
+    "--timeline-grid-width": `${gridInterval * pixelsPerSecond}px`,
+  } as CSSProperties;
 
   return (
     <section className={styles.timelineSection}>
@@ -114,6 +122,7 @@ export const TimelineCanvas = ({
             className={styles.track}
             data-can-manage={canManage}
             ref={trackRef}
+            style={trackStyle}
             onMouseDown={onTrackMouseDown}
           >
             {selectionRect && (
