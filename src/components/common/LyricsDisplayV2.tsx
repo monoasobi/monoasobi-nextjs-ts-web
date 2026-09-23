@@ -5,6 +5,7 @@ import { HandRaisedIcon, MicrophoneIcon } from "@heroicons/react/24/solid";
 import { Badge, Button, Flex, Text } from "@radix-ui/themes";
 import { useMemo, useRef } from "react";
 import styles from "./LyricsDisplayV2.module.css";
+import { getDisplayStart } from "./YouTubeLyricsPlayer/time";
 
 type GroupPos = "solo" | "first" | "middle" | "last";
 
@@ -30,28 +31,18 @@ const getGroupPos = (lines: LyricLine[], index: number): GroupPos | null => {
 
 export interface LyricsDisplayV2Props {
   lyrics: LyricLine[];
-  currentTime: number;
+  activeIndex: number;
   offset: number;
   onSeek: (time: number) => void;
 }
 
 export const LyricsDisplayV2 = ({
   lyrics,
-  currentTime,
+  activeIndex,
   offset,
   onSeek,
 }: LyricsDisplayV2Props) => {
   const lineRefs = useRef<Map<number, HTMLDivElement>>(new Map());
-
-  const activeIndex = useMemo(
-    () =>
-      lyrics.findIndex(
-        (line) =>
-          currentTime >= line.start + offset &&
-          currentTime < line.end + offset,
-      ),
-    [currentTime, lyrics, offset],
-  );
 
   const callGroupStarts = useMemo(
     () =>
@@ -64,7 +55,7 @@ export const LyricsDisplayV2 = ({
         return [
           {
             index,
-            startTime: line.start + offset,
+            startTime: getDisplayStart(line, offset),
             type: line.callType,
             label: line.callGuide || TYPE_LABELS[line.callType],
           },
@@ -127,7 +118,7 @@ export const LyricsDisplayV2 = ({
                 data-active={isActive}
                 data-call-type={line.callType ?? undefined}
                 data-group-pos={groupPos ?? undefined}
-                onClick={() => onSeek(line.start + offset)}
+                onClick={() => onSeek(getDisplayStart(line, offset))}
               >
                 {line.callType && (isActive || isGroupStart) && (
                   <Badge color={line.callType === "CLAP" ? "amber" : "red"}>
@@ -138,7 +129,12 @@ export const LyricsDisplayV2 = ({
                 <p className={styles.reading}>{line.jpReading}</p>
                 <p className={styles.korean}>{line.kr}</p>
                 {line.callGuide && line.callType === "CUSTOM" && (
-                  <Text as="p" className={styles.callGuide} size="1" color="gray">
+                  <Text
+                    as="p"
+                    className={styles.callGuide}
+                    size="1"
+                    color="gray"
+                  >
                     {line.callGuide}
                   </Text>
                 )}

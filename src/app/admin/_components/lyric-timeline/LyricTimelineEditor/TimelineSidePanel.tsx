@@ -1,62 +1,35 @@
 "use client";
 
-import type { LyricLine } from "@appTypes/lyric";
-import type { Music } from "@appTypes/music";
-import {
-  ArrowDownTrayIcon,
-  ArrowPathIcon,
-} from "@heroicons/react/24/outline";
+import type { LyricPlayer } from "@components/common/YouTubeLyricsPlayer/useLyricPlayer";
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { Button, Callout, Flex, Text, TextField } from "@radix-ui/themes";
-import type { RefObject } from "react";
 import styles from "../LyricTimelineEditor.module.css";
-import {
-  TimelineYouTubePreview,
-  type TimelineYouTubePreviewHandle,
-} from "../TimelineYouTubePreview";
-import { roundTime } from "../time";
-import { SRT_EXPORTS, type SrtExportConfig } from "./srt";
+import { TimelineYouTubePreview } from "../TimelineYouTubePreview";
+import { AdminSrtExport, type AdminSrtExportProps } from "../../AdminSrtExport";
 
 interface TimelineSidePanelProps {
-  music: Music;
-  activeLine: LyricLine | null;
-  previewRef: RefObject<TimelineYouTubePreviewHandle | null>;
-  draftSync: number;
+  player: LyricPlayer;
   dirty: boolean;
   canManage: boolean;
   isSaving: boolean;
   message: { tone: "success" | "error"; text: string } | null;
-  onTimeUpdate: (time: number) => void;
-  onDurationChange: (duration: number) => void;
-  onSyncChange: (sync: number) => void;
   onSave: () => void;
   onReset: () => void;
-  onExportSrt: (exportConfig: SrtExportConfig) => void;
+  srtExport: AdminSrtExportProps;
 }
 
 export const TimelineSidePanel = ({
-  music,
-  activeLine,
-  previewRef,
-  draftSync,
+  player,
   dirty,
   canManage,
   isSaving,
   message,
-  onTimeUpdate,
-  onDurationChange,
-  onSyncChange,
   onSave,
   onReset,
-  onExportSrt,
+  srtExport,
 }: TimelineSidePanelProps) => (
   <aside className={styles.sidePanel}>
-    <TimelineYouTubePreview
-      ref={previewRef}
-      youtubeId={music.youtubeId ?? ""}
-      activeLine={activeLine}
-      onTimeUpdate={onTimeUpdate}
-      onDurationChange={onDurationChange}
-    />
+    <TimelineYouTubePreview player={player} />
 
     <div className={styles.controlPanel}>
       <label className={styles.field}>
@@ -66,13 +39,13 @@ export const TimelineSidePanel = ({
         <TextField.Root
           type="number"
           step="0.01"
-          value={draftSync}
+          value={player.offset}
           disabled={!canManage}
           onChange={(event) => {
             if (!canManage) return;
 
             const value = Number(event.target.value);
-            if (Number.isFinite(value)) onSyncChange(roundTime(value));
+            if (Number.isFinite(value)) player.setOffset(value);
           }}
         />
       </label>
@@ -85,7 +58,7 @@ export const TimelineSidePanel = ({
             variant="soft"
             color="gray"
             disabled={!canManage}
-            onClick={() => onSyncChange(roundTime(draftSync + step))}
+            onClick={() => player.adjustOffset(step)}
           >
             {step > 0 ? "+" : ""}
             {step}
@@ -116,24 +89,7 @@ export const TimelineSidePanel = ({
       )}
 
       <div className={styles.exportPanel}>
-        <Text size="1" color="gray" weight="bold">
-          SRT Export
-        </Text>
-        <Flex gap="1" wrap="wrap">
-          {SRT_EXPORTS.map((exportConfig) => (
-            <Button
-              key={exportConfig.key}
-              type="button"
-              size="1"
-              variant="soft"
-              color="gray"
-              onClick={() => onExportSrt(exportConfig)}
-            >
-              <ArrowDownTrayIcon width="14" height="14" />
-              {exportConfig.label}
-            </Button>
-          ))}
-        </Flex>
+        <AdminSrtExport {...srtExport} />
       </div>
 
       {message && (

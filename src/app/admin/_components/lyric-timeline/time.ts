@@ -1,20 +1,20 @@
 import type { LyricLine } from "@appTypes/lyric";
+import {
+  roundTime,
+  getDisplayStart,
+  getDisplayEnd,
+  formatTime as formatPlayerTime,
+} from "@components/common/YouTubeLyricsPlayer/time";
 
 export const MIN_LINE_DURATION = 0.1;
 export const DEFAULT_PIXELS_PER_SECOND = 72;
 export const MIN_PIXELS_PER_SECOND = 20;
 export const MAX_PIXELS_PER_SECOND = 300;
 
-export const roundTime = (value: number) => Number(value.toFixed(2));
+export { roundTime, getDisplayStart, getDisplayEnd };
 
 export const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
-
-export const getDisplayStart = (line: LyricLine, sync: number) =>
-  line.start + sync;
-
-export const getDisplayEnd = (line: LyricLine, sync: number) =>
-  line.end + sync;
 
 export const getTimelineStart = (lyrics: LyricLine[], sync: number) => {
   const minDisplayStart = lyrics.reduce(
@@ -41,14 +41,4 @@ export const getTimelineEnd = (
 export const getLineLabel = (line: LyricLine, index: number) =>
   line.jpReading || line.jp || line.kr || `Line ${index + 1}`;
 
-export const formatTime = (seconds: number) => {
-  const sign = seconds < 0 ? "-" : "";
-  const abs = Math.abs(seconds);
-  const minutes = Math.floor(abs / 60);
-  const wholeSeconds = Math.floor(abs % 60);
-  const fraction = Math.round((abs - Math.floor(abs)) * 100);
-
-  return `${sign}${minutes}:${wholeSeconds
-    .toString()
-    .padStart(2, "0")}.${fraction.toString().padStart(2, "0")}`;
-};
+export const formatTime = (seconds: number) => formatPlayerTime(seconds, true);

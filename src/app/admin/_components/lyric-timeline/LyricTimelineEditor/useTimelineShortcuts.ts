@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, type RefObject } from "react";
-import type { TimelineYouTubePreviewHandle } from "../TimelineYouTubePreview";
+import { useEffect } from "react";
+import type { LyricPlayer } from "@components/common/YouTubeLyricsPlayer/useLyricPlayer";
 import { ZOOM_FACTOR, isButtonTarget, isEditableTarget } from "./timelineUtils";
 
 interface UseTimelineShortcutsParams {
   activeLineIndex: number;
   pixelsPerSecond: number;
-  previewRef: RefObject<TimelineYouTubePreviewHandle | null>;
+  player: Pick<LyricPlayer, "togglePlay" | "seekBy">;
   onActiveLineSelect: (index: number) => void;
   onZoom: (pixelsPerSecond: number) => void;
 }
@@ -15,10 +15,12 @@ interface UseTimelineShortcutsParams {
 export const useTimelineShortcuts = ({
   activeLineIndex,
   pixelsPerSecond,
-  previewRef,
+  player,
   onActiveLineSelect,
   onZoom,
 }: UseTimelineShortcutsParams) => {
+  const { togglePlay, seekBy } = player;
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const isEditable = isEditableTarget(event.target);
@@ -28,7 +30,7 @@ export const useTimelineShortcuts = ({
 
         event.preventDefault();
         event.stopPropagation();
-        previewRef.current?.togglePlay();
+        togglePlay();
         return;
       }
 
@@ -41,7 +43,7 @@ export const useTimelineShortcuts = ({
       ) {
         event.preventDefault();
         event.stopPropagation();
-        previewRef.current?.seekBy(event.key === "ArrowLeft" ? -0.01 : 0.01);
+        seekBy(event.key === "ArrowLeft" ? -0.01 : 0.01);
         return;
       }
 
@@ -73,6 +75,7 @@ export const useTimelineShortcuts = ({
     onActiveLineSelect,
     onZoom,
     pixelsPerSecond,
-    previewRef,
+    togglePlay,
+    seekBy,
   ]);
 };

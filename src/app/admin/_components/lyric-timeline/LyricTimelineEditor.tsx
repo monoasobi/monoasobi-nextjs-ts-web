@@ -3,6 +3,7 @@
 import type { AdminRole } from "@appTypes/admin";
 import type { LyricLine } from "@appTypes/lyric";
 import type { Music } from "@appTypes/music";
+import { useLyricPlayer } from "@components/common/YouTubeLyricsPlayer/useLyricPlayer";
 import { Callout } from "@radix-ui/themes";
 import { useRouter } from "next/navigation";
 import {
@@ -13,28 +14,16 @@ import {
 } from "react";
 import { TimelineCanvas } from "./LyricTimelineEditor/TimelineCanvas";
 import { TimelineSidePanel } from "./LyricTimelineEditor/TimelineSidePanel";
-import {
-  buildSrt,
-  downloadTextFile,
-  sanitizeFilePart,
-  type SrtExportConfig,
-} from "./LyricTimelineEditor/srt";
-import {
-  getNormalizedLyrics,
-} from "./LyricTimelineEditor/timelineUtils";
+
+import { getNormalizedLyrics } from "./LyricTimelineEditor/timelineUtils";
 import { useTimelineResize } from "./LyricTimelineEditor/useTimelineResize";
 import { useTimelineSelection } from "./LyricTimelineEditor/useTimelineSelection";
 import { useTimelineShortcuts } from "./LyricTimelineEditor/useTimelineShortcuts";
 import { useTimelineZoom } from "./LyricTimelineEditor/useTimelineZoom";
 import styles from "./LyricTimelineEditor.module.css";
 import {
-  type TimelineYouTubePreviewHandle,
-} from "./TimelineYouTubePreview";
-import {
   DEFAULT_PIXELS_PER_SECOND,
   MIN_LINE_DURATION,
-  getDisplayEnd,
-  getDisplayStart,
   getTimelineEnd,
   getTimelineStart,
   roundTime,
@@ -57,15 +46,18 @@ export const LyricTimelineEditor = ({
 }: LyricTimelineEditorProps) => {
   const router = useRouter();
   const canManage = role === "admin";
-  const previewRef = useRef<TimelineYouTubePreviewHandle>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const [draftLyrics, setDraftLyrics] = useState(() =>
     getNormalizedLyrics(lyricTrack.lyricJson),
   );
-  const [draftSync, setDraftSync] = useState(lyricTrack.sync);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
+  const player = useLyricPlayer({
+    youtubeId: music.youtubeId ?? "",
+    lyrics: draftLyrics,
+    sync: lyricTrack.sync,
+    showReading: true,
+  });
+  const { currentTime, duration, activeLineIndex, offset: draftSync } = player;
   const [pixelsPerSecond, setPixelsPerSecond] = useState(
     DEFAULT_PIXELS_PER_SECOND,
   );
@@ -93,18 +85,6 @@ export const LyricTimelineEditor = ({
     draftSync !== lyricTrack.sync ||
     JSON.stringify(draftLyrics) !==
       JSON.stringify(getNormalizedLyrics(lyricTrack.lyricJson));
-
-  const activeLineIndex = useMemo(
-    () =>
-      draftLyrics.findIndex(
-        (line) =>
-          currentTime >= getDisplayStart(line, draftSync) &&
-          currentTime < getDisplayEnd(line, draftSync),
-      ),
-    [currentTime, draftLyrics, draftSync],
-  );
-  const activeLine =
-    activeLineIndex >= 0 ? (draftLyrics[activeLineIndex] ?? null) : null;
 
   const updateLine = (index: number, patch: Partial<LyricLine>) => {
     if (!canManage) return;
@@ -142,7 +122,9 @@ export const LyricTimelineEditor = ({
   const deleteLine = (index: number) => {
     if (!canManage) return;
 
-    const nextLyrics = draftLyrics.filter((_, lineIndex) => lineIndex !== index);
+    const nextLyrics = draftLyrics.filter(
+      (_, lineIndex) => lineIndex !== index,
+    );
     const nextIndex =
       nextLyrics.length === 0 ? null : Math.min(index, nextLyrics.length - 1);
 
@@ -186,15 +168,13 @@ export const LyricTimelineEditor = ({
   useTimelineShortcuts({
     activeLineIndex,
     pixelsPerSecond,
-    previewRef,
+    player,
     onActiveLineSelect: selectLine,
     onZoom: zoomTimeline,
   });
 
   const handleSeekDisplayTime = (time: number) => {
-    const seekTime = Math.max(0, time);
-    setCurrentTime(seekTime);
-    previewRef.current?.seekAndPause(seekTime);
+    player.seekAndPause(time);
   };
 
   const handleRulerClick = (event: ReactMouseEvent<HTMLDivElement>) => {
@@ -206,16 +186,6 @@ export const LyricTimelineEditor = ({
       timelineStart +
       (timeline.scrollLeft + event.clientX - rect.left) / pixelsPerSecond;
     handleSeekDisplayTime(time);
-  };
-
-  const exportSrt = (exportConfig: SrtExportConfig) => {
-    const normalizedLyrics = getNormalizedLyrics(
-      canManage ? draftLyrics : lyricTrack.lyricJson,
-    );
-    const srt = buildSrt(normalizedLyrics, exportConfig.key);
-    const filenameBase = `${music.id}_${sanitizeFilePart(music.korTitle || music.title)}`;
-
-    downloadTextFile(`${filenameBase} ${exportConfig.suffix}.srt`, srt);
   };
 
   const save = async () => {
@@ -267,24 +237,21 @@ export const LyricTimelineEditor = ({
 
       <div className={styles.workspace}>
         <TimelineSidePanel
-          music={music}
-          activeLine={activeLine}
-          previewRef={previewRef}
-          draftSync={draftSync}
+          player={player}
           dirty={dirty}
           canManage={canManage}
           isSaving={isSaving}
           message={message}
-          onTimeUpdate={setCurrentTime}
-          onDurationChange={setDuration}
-          onSyncChange={setDraftSync}
           onSave={save}
           onReset={() => {
             setDraftLyrics(getNormalizedLyrics(lyricTrack.lyricJson));
-            setDraftSync(lyricTrack.sync);
+            player.resetOffset();
             setMessage(null);
           }}
-          onExportSrt={exportSrt}
+          srtExport={{
+            music,
+            lyrics: canManage ? draftLyrics : lyricTrack.lyricJson,
+          }}
         />
 
         <TimelineCanvas

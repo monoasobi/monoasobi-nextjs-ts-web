@@ -12,9 +12,9 @@ import {
   ScrollArea,
   Text,
 } from "@radix-ui/themes";
-import { useMemo, useRef, useState } from "react";
-import { VideoPlayer, type VideoPlayerHandle } from "./VideoPlayer";
+import { VideoPlayer } from "./VideoPlayer";
 import styles from "./YouTubeLyricsPlayer.module.css";
+import { useLyricPlayer } from "./YouTubeLyricsPlayer/useLyricPlayer";
 
 const OFFSET_STEPS = [0.01, 0.05, 0.1, 0.5];
 
@@ -27,33 +27,18 @@ export const YouTubeLyricsPlayer = ({
   music,
   lyricTrack,
 }: YouTubeLyricsPlayerProps) => {
-  const videoPlayerRef = useRef<VideoPlayerHandle>(null);
   const track = lyricTrack;
-  const [lyricsOffset, setLyricsOffset] = useState(track?.sync ?? 0);
-  const [currentTime, setCurrentTime] = useState(0);
-
-  const activeLine = useMemo(
-    () =>
-      track?.lyric.find(
-        (line) =>
-          currentTime >= line.start + lyricsOffset &&
-          currentTime < line.end + lyricsOffset,
-      ) ?? null,
-    [currentTime, lyricsOffset, track],
-  );
-
-  const handleSeek = (time: number) => {
-    setCurrentTime(time);
-    videoPlayerRef.current?.seekAndPlay(time);
-  };
-
-  const handleOffsetChange = (delta: number) => {
-    setLyricsOffset((prev) => Number((prev + delta).toFixed(2)));
-  };
-
-  const resetOffset = () => {
-    setLyricsOffset(track?.sync ?? 0);
-  };
+  const player = useLyricPlayer({
+    youtubeId: music.youtubeId ?? "",
+    lyrics: track?.lyric,
+    sync: track?.sync ?? 0,
+  });
+  const {
+    offset: lyricsOffset,
+    activeLineIndex,
+    adjustOffset: handleOffsetChange,
+    resetOffset,
+  } = player;
 
   const syncLabel =
     lyricsOffset !== 0
@@ -139,12 +124,7 @@ export const YouTubeLyricsPlayer = ({
             </Flex>
 
             {music.youtubeId ? (
-              <VideoPlayer
-                ref={videoPlayerRef}
-                youtubeId={music.youtubeId}
-                activeLine={activeLine}
-                onTimeUpdate={setCurrentTime}
-              />
+              <VideoPlayer player={player} />
             ) : (
               <Card className={styles.statusCard}>
                 <Text size="2" color="gray">
@@ -158,9 +138,9 @@ export const YouTubeLyricsPlayer = ({
         {track && (
           <LyricsDisplayV2
             lyrics={track.lyric}
-            currentTime={currentTime}
+            activeIndex={activeLineIndex}
             offset={lyricsOffset}
-            onSeek={handleSeek}
+            onSeek={player.seekAndPlay}
           />
         )}
 

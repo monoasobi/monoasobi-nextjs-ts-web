@@ -1,5 +1,7 @@
 "use client";
 
+import { AdminSrtExport } from "./AdminSrtExport";
+import type { LyricLine } from "@appTypes/lyric";
 import type { AdminRole } from "@appTypes/admin";
 import {
   CheckIcon,
@@ -24,13 +26,13 @@ import Link from "next/link";
 import type { FormEvent } from "react";
 import { useState } from "react";
 import type { AdminDashboardData, SelectedNode } from "./AdminDashboard";
-import { AdminEditorForm, AdminEditorMessage } from "./AdminDocumentPanel/AdminEditorForm";
+import {
+  AdminEditorForm,
+  AdminEditorMessage,
+} from "./AdminDocumentPanel/AdminEditorForm";
 import { getEditorConfig } from "./AdminDocumentPanel/adminEditorConfig";
 import { getSelectedDocument } from "./AdminDocumentPanel/adminSelectedDocument";
-import type {
-  AdminMessage,
-  EditorConfig,
-} from "./AdminDocumentPanel/types";
+import type { AdminMessage, EditorConfig } from "./AdminDocumentPanel/types";
 import {
   getErrorMessage,
   getInitialVisibilityFlags,
@@ -53,6 +55,13 @@ export const AdminDocumentPanel = ({
 }: AdminDocumentPanelProps) => {
   const canManage = role === "admin";
   const selectedDocument = getSelectedDocument(data, selectedNode);
+  const selectedLyric =
+    selectedNode.type === "lyric"
+      ? data.lyricTracks.find((track) => track.musicId === selectedNode.id)
+      : undefined;
+  const selectedMusic = selectedLyric
+    ? data.musics.find((music) => music.id === selectedLyric.musicId)
+    : undefined;
   const config = getEditorConfig(data, selectedNode);
   const isNewDocument = config?.method === "POST";
   const [isEditing, setIsEditing] = useState(
@@ -228,6 +237,17 @@ export const AdminDocumentPanel = ({
           )}
         </Flex>
       </Flex>
+
+      {selectedLyric &&
+        selectedMusic &&
+        Array.isArray(selectedLyric.lyricJson) && (
+          <Flex px="3" py="2">
+            <AdminSrtExport
+              music={selectedMusic}
+              lyrics={selectedLyric.lyricJson as LyricLine[]}
+            />
+          </Flex>
+        )}
 
       <ScrollArea
         className={styles.documentScroll}
