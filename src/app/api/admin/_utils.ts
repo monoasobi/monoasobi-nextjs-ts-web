@@ -88,5 +88,5 @@ export const parseNonNegativeId = (value: string, label: string) => {
 };
 
 export const revalidatePublicCatalog = () => {
-  revalidateTag(PUBLIC_CATALOG_CACHE_TAG, "max");
+  revalidateTag(PUBLIC_CATALOG_CACHE_TAG, { expire: 0 });
 };

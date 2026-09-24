@@ -18,7 +18,7 @@ export const getMusicEditorConfig = (
     endpoint: music ? `/api/admin/musics/${music.id}` : "/api/admin/musics",
     deleteEndpoint: music ? `/api/admin/musics/${music.id}` : undefined,
     deleteDescription:
-      "연결된 novel, comic, lyricTrack과 book 연결 정보도 함께 삭제됩니다.",
+      "공개 목록에서 곡을 숨깁니다. 연결된 가사·소설·만화·콜 자료는 보존됩니다.",
     method: music ? "PUT" : "POST",
     fields: [
       field("title", "title", music?.title, true),

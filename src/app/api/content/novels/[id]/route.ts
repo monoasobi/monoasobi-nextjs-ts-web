@@ -41,7 +41,7 @@ export const GET = async (request: Request, context: NovelRouteContext) => {
 
     const headers = new Headers({
       "Content-Type": "text/markdown; charset=utf-8",
-      "Cache-Control": "public, max-age=3600",
+      "Cache-Control": "private, no-store",
     });
 
     if (object.ETag) headers.set("ETag", object.ETag);

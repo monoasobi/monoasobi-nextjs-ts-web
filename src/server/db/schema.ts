@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { integer, real, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
+import { check, integer, real, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
 
 export const musics = sqliteTable("musics", {
   id: integer("id").primaryKey(),
@@ -8,6 +8,7 @@ export const musics = sqliteTable("musics", {
   title: text("title").notNull(),
   specialPath: text("special_path"),
   youtubeId: text("youtube_id"),
+  deletedAt: text("deleted_at"),
   createdAt: text("created_at")
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
@@ -106,6 +107,34 @@ export const lyricTracks = sqliteTable("lyric_tracks", {
   updatedAt: text("updated_at")
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
+});
+
+// Shared database: schema and migrations are owned by MONOASOBI only.
+export const loudasobiMusicSettings = sqliteTable("loudasobi_music_settings", {
+  musicId: integer("music_id").primaryKey().references(() => musics.id),
+  youtubeId: text("youtube_id"),
+  fanLightColor: text("fan_light_color"),
+  publish: integer("publish", { mode: "boolean" }).notNull().default(false),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+}, (table) => [
+  check("loudasobi_publish_boolean", sql`${table.publish} IN (0, 1)`),
+  check("loudasobi_publish_requires_audio", sql`${table.publish} = 0 OR (${table.youtubeId} IS NOT NULL AND length(trim(${table.youtubeId})) > 0)`),
+]);
+
+export const loudasobiLyricTracks = sqliteTable("loudasobi_lyric_tracks", {
+  musicId: integer("music_id").primaryKey().references(() => musics.id),
+  sync: real("sync").notNull().default(0),
+  lyricJson: text("lyric_json", { mode: "json" }).notNull(),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const loudasobiCallGuides = sqliteTable("loudasobi_call_guides", {
+  musicId: integer("music_id").primaryKey().references(() => loudasobiLyricTracks.musicId),
+  guideJson: text("guide_json", { mode: "json" }).notNull(),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
 export const musicsRelations = relations(musics, ({ many, one }) => ({

@@ -3,7 +3,7 @@ import { toMusic } from "./mapper";
 
 export const getMusicById = async (id: number) => {
   const music = await db.query.musics.findFirst({
-    where: (musics, { eq }) => eq(musics.id, id),
+    where: (musics, { and, eq, isNull }) => and(eq(musics.id, id), isNull(musics.deletedAt)),
   });
 
   return music ? toMusic(music) : null;
@@ -11,6 +11,7 @@ export const getMusicById = async (id: number) => {
 
 export const getMusicCatalog = async () => {
   const catalog = await db.query.musics.findMany({
+    where: (musics, { isNull }) => isNull(musics.deletedAt),
     orderBy: (musics, { asc }) => asc(musics.id),
     with: {
       novels: true,

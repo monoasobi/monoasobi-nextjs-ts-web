@@ -15,7 +15,7 @@ import type {
   MusicInput,
   NovelInput,
 } from "@/server/schemas/admin.schema";
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 
 const now = () => new Date().toISOString();
 
@@ -28,33 +28,27 @@ export const updateMusic = async (id: number, input: MusicInput) => {
   const [updated] = await db
     .update(musics)
     .set({ ...input, updatedAt: now() })
-    .where(eq(musics.id, id))
+    .where(and(eq(musics.id, id), isNull(musics.deletedAt)))
     .returning();
 
   return updated ?? null;
 };
 
+// Preserve all related content. A single UPDATE is atomic and reversible.
 export const deleteMusic = async (id: number) => {
-  const relatedNovels = await db.query.novels.findMany({
-    where: (novels, { eq }) => eq(novels.musicId, id),
-    columns: { id: true },
-  });
-  const novelIds = relatedNovels.map((novel) => novel.id);
-
-  if (novelIds.length > 0) {
-    await db.delete(bookNovels).where(inArray(bookNovels.novelId, novelIds));
-  }
-
-  await db.delete(lyricTracks).where(eq(lyricTracks.musicId, id));
-  await db.delete(comics).where(eq(comics.musicId, id));
-  await db.delete(novels).where(eq(novels.musicId, id));
-
-  const [deleted] = await db
-    .delete(musics)
-    .where(eq(musics.id, id))
+  const timestamp = now();
+  const [deleted] = await db.update(musics)
+    .set({ deletedAt: timestamp, updatedAt: timestamp })
+    .where(and(eq(musics.id, id), isNull(musics.deletedAt)))
     .returning();
-
   return deleted ?? null;
+};
+
+export const restoreMusic = async (id: number) => {
+  const [restored] = await db.update(musics)
+    .set({ deletedAt: null, updatedAt: now() })
+    .where(eq(musics.id, id)).returning();
+  return restored ?? null;
 };
 
 export const createNovel = async (input: NovelInput) => {

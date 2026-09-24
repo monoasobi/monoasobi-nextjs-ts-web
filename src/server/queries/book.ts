@@ -3,17 +3,18 @@ import { cacheLife, cacheTag } from "next/cache";
 import { PUBLIC_CATALOG_CACHE_TAG } from "./publicCatalog";
 
 export const getBookById = async (id: number) => {
-  return db.query.books.findFirst({
+  const book = await db.query.books.findFirst({
     where: (books, { eq }) => eq(books.id, id),
     with: {
       novels: {
         with: {
-          novel: true,
+          novel: { with: { music: true } },
         },
       },
       purchaseLinks: true,
     },
   });
+  return book ? { ...book, novels: book.novels.filter(({ novel }) => novel.music && !novel.music.deletedAt) } : null;
 };
 
 export const getBookPurchaseInfoById = async (id: number) => {
@@ -43,7 +44,7 @@ export const getBookPurchaseInfoById = async (id: number) => {
   return {
     id: book.id,
     name: book.name,
-    novels: book.novels.map(({ novel }) => ({
+    novels: book.novels.filter(({ novel }) => novel.music && !novel.music.deletedAt).map(({ novel }) => ({
       id: novel.id,
       title: novel.title,
       writer: novel.writer,

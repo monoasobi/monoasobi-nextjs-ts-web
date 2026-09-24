@@ -1,3 +1,4 @@
+import { activeMusicIds } from "./activeMusic";
 import { db } from "@/server/db";
 import { toComic, toMusic, toNovel } from "./mapper";
 
@@ -10,6 +11,7 @@ const mapMusicSummary = (music: Awaited<ReturnType<typeof getAgentMusicsRaw>>[nu
 
 const getAgentMusicsRaw = () =>
   db.query.musics.findMany({
+    where: (musics, { isNull }) => isNull(musics.deletedAt),
     orderBy: (musics, { asc }) => asc(musics.id),
     with: {
       novels: true,
@@ -22,9 +24,11 @@ export const getAgentCatalog = async () => {
   const [musics, novels, comics, books] = await Promise.all([
     getAgentMusicsRaw(),
     db.query.novels.findMany({
+      where: (novels, { inArray }) => inArray(novels.musicId, activeMusicIds()),
       orderBy: (novels, { asc }) => asc(novels.id),
     }),
     db.query.comics.findMany({
+      where: (comics, { inArray }) => inArray(comics.musicId, activeMusicIds()),
       orderBy: (comics, { asc }) => asc(comics.id),
     }),
     db.query.books.findMany({
@@ -36,6 +40,7 @@ export const getAgentCatalog = async () => {
     }),
   ]);
 
+  const activeNovelIds = new Set(novels.map(novel => novel.id));
   return {
     musics: musics.map(mapMusicSummary),
     novels: novels.map(toNovel),
@@ -44,6 +49,7 @@ export const getAgentCatalog = async () => {
       id: book.id,
       name: book.name,
       novels: book.novels
+        .filter(({ novelId }) => activeNovelIds.has(novelId))
         .sort((left, right) => left.order - right.order)
         .map(({ novelId }) => novelId),
       purchaseLinks: book.purchaseLinks
@@ -66,7 +72,7 @@ export const getAgentMusics = async () => {
 
 export const getAgentMusicById = async (id: number) => {
   const music = await db.query.musics.findFirst({
-    where: (musics, { eq }) => eq(musics.id, id),
+    where: (musics, { and, eq, isNull }) => and(eq(musics.id, id), isNull(musics.deletedAt)),
     with: {
       novels: true,
       comics: true,

@@ -1,12 +1,15 @@
+import { activeMusicIds } from "./activeMusic";
 import { db } from "@/server/db";
 import type { LyricLine } from "@appTypes/lyric";
 
 export const getAdminDashboard = async () => {
   const [musics, novels, comics, books, lyricTracks] = await Promise.all([
     db.query.musics.findMany({
+      where: (musics, { isNull }) => isNull(musics.deletedAt),
       orderBy: (musics, { asc }) => asc(musics.id),
     }),
     db.query.novels.findMany({
+      where: (novels, { inArray }) => inArray(novels.musicId, activeMusicIds()),
       orderBy: (novels, { asc }) => asc(novels.id),
       with: {
         music: true,
@@ -14,6 +17,7 @@ export const getAdminDashboard = async () => {
       },
     }),
     db.query.comics.findMany({
+      where: (comics, { inArray }) => inArray(comics.musicId, activeMusicIds()),
       orderBy: (comics, { asc }) => asc(comics.id),
       with: {
         music: true,
@@ -32,6 +36,7 @@ export const getAdminDashboard = async () => {
       },
     }),
     db.query.lyricTracks.findMany({
+      where: (lyricTracks, { inArray }) => inArray(lyricTracks.musicId, activeMusicIds()),
       orderBy: (lyricTracks, { asc }) => asc(lyricTracks.musicId),
     }),
   ]);
@@ -40,6 +45,7 @@ export const getAdminDashboard = async () => {
     musics,
     novels,
     comics,
+    // Keep hidden relationships in edit payloads so saving a book cannot unlink them.
     books,
     lyricTracks: lyricTracks.map((track) => ({
       musicId: track.musicId,
@@ -52,7 +58,7 @@ export const getAdminDashboard = async () => {
 
 export const getAdminLyricTimeline = async (musicId: number) => {
   const music = await db.query.musics.findFirst({
-    where: (musics, { eq }) => eq(musics.id, musicId),
+    where: (musics, { and, eq, isNull }) => and(eq(musics.id, musicId), isNull(musics.deletedAt)),
     with: {
       lyricTrack: true,
     },

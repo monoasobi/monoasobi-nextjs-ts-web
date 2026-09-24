@@ -43,3 +43,6 @@ next-env.d.ts
 
 # etc
 public/novel
+
+# Local database exports; never commit production content backups.
+.backups/

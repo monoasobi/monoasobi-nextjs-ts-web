@@ -1,3 +1,4 @@
+import { activeMusicIds } from "./activeMusic";
 import type { LyricLine, LyricTrack } from "@appTypes/lyric";
 import { db } from "@/server/db";
 import { cacheLife, cacheTag } from "next/cache";
@@ -11,7 +12,7 @@ export const getLyricTrackByMusicId = async (
   cacheLife("hours");
 
   const track = await db.query.lyricTracks.findFirst({
-    where: (lyricTracks, { eq }) => eq(lyricTracks.musicId, musicId),
+    where: (lyricTracks, { and, eq, inArray }) => and(eq(lyricTracks.musicId, musicId), inArray(lyricTracks.musicId, activeMusicIds())),
   });
 
   if (!track) return null;

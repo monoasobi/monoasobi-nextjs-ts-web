@@ -20,6 +20,7 @@ export const getPublicCatalog = async (): Promise<PublicCatalogItem[]> => {
   cacheLife("hours");
 
   const catalog = await db.query.musics.findMany({
+    where: (musics, { isNull }) => isNull(musics.deletedAt),
     orderBy: (musics, { asc }) => asc(musics.id),
     with: {
       novels: true,
