@@ -115,6 +115,7 @@ export const loudasobiMusicSettings = sqliteTable("loudasobi_music_settings", {
   youtubeId: text("youtube_id"),
   fanLightColor: text("fan_light_color"),
   publish: integer("publish", { mode: "boolean" }).notNull().default(false),
+  syncOffset: real("sync_offset").notNull().default(0),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 }, (table) => [
@@ -131,7 +132,7 @@ export const loudasobiLyricTracks = sqliteTable("loudasobi_lyric_tracks", {
 });
 
 export const loudasobiCallGuides = sqliteTable("loudasobi_call_guides", {
-  musicId: integer("music_id").primaryKey().references(() => loudasobiLyricTracks.musicId),
+  musicId: integer("music_id").primaryKey().references(() => musics.id),
   guideJson: text("guide_json", { mode: "json" }).notNull(),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),

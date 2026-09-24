@@ -111,7 +111,7 @@ export const LyricTimelineEditor = ({
     const nextLyrics = [
       ...draftLyrics.slice(0, index),
       { ...line, end: splitTime },
-      { ...line, start: splitTime },
+      { ...line, id: crypto.randomUUID(), start: splitTime },
       ...draftLyrics.slice(index + 1),
     ];
     setDraftLyrics(nextLyrics);
@@ -220,6 +220,8 @@ export const LyricTimelineEditor = ({
       return;
     }
 
+    const result = await response.json();
+    setDraftLyrics(getNormalizedLyrics(result.lyricTrack.lyricJson));
     setMessage({ tone: "success", text: "저장했습니다." });
     router.refresh();
   };

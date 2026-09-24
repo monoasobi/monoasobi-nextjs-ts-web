@@ -10,7 +10,8 @@ import { z } from "zod";
 // Production application also requires --confirm-delete-paused; see docs/loudasobi-database.md.
 // The default command rehearses against a local copy; only --apply writes remotely.
 const apply = process.argv.includes("--apply");
-if (apply && !process.argv.includes("--confirm-delete-paused")) {
+const schemaOnly = process.argv.includes("--schema-only");
+if (apply && !schemaOnly && !process.argv.includes("--confirm-delete-paused")) {
   throw new Error("Pause MONOASOBI admin writes and arrange deployment before applying. See docs/loudasobi-database.md.");
 }
 const remote = createClient({ url: process.env.TURSO_DATABASE_URL, authToken: process.env.TURSO_AUTH_TOKEN });
@@ -54,7 +55,7 @@ async function importLyrics(client) {
 
 async function verifyOriginalRows(client, snapshot) {
   for (const table of snapshot.tables) {
-    if (table.name === "__drizzle_migrations" || table.name.startsWith("loudasobi_")) continue;
+    if (table.name === "__drizzle_migrations" || (!schemaOnly && table.name.startsWith("loudasobi_"))) continue;
     const rows = await client.execute("SELECT * FROM " + quote(table.name));
     const columns = table.rows.length ? Object.keys(table.rows[0]).sort() : [];
     const serialize = row => JSON.stringify(columns.map(column => row[column]));
@@ -102,7 +103,7 @@ async function main() {
     for (const index of snapshot.indexes) await local.execute(index);
     await local.execute("PRAGMA foreign_keys = ON");
     await migrate(drizzle(local), { migrationsFolder: "./drizzle" });
-    await importLyrics(local);
+    if (!schemaOnly) await importLyrics(local);
     await verifyOriginalRows(local, snapshot);
     const integrity = await local.execute("PRAGMA foreign_key_check");
     if (integrity.rows.length) throw new Error("Foreign key validation failed");
@@ -110,7 +111,7 @@ async function main() {
   } finally { local.close(); }
   if (!apply) { console.log("No remote changes. Production application requires the deployment procedure in docs/loudasobi-database.md."); return; }
   await migrate(drizzle(remote), { migrationsFolder: "./drizzle" });
-  await importLyrics(remote);
+  if (!schemaOnly) await importLyrics(remote);
   await verifyOriginalRows(remote, snapshot);
   const counts = await remote.execute("SELECT (SELECT count(*) FROM musics) AS musics, (SELECT count(*) FROM lyric_tracks) AS mono_lyrics, (SELECT count(*) FROM loudasobi_lyric_tracks) AS loud_lyrics, (SELECT count(*) FROM loudasobi_music_settings WHERE publish=1) AS published");
   if ((await remote.execute("PRAGMA foreign_key_check")).rows.length) throw new Error("Remote foreign key validation failed");

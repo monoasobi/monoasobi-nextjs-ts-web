@@ -1,6 +1,9 @@
 export type CallType = "LOUD" | "CLAP" | "CUSTOM";
 
 export interface LyricLine {
+  id?: string;
+  en?: string;
+  enReading?: string;
   start: number;
   end: number;
   jp: string;

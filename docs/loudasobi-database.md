@@ -1,5 +1,31 @@
 # loudasobi 공용 DB 기반
 
+## 최신 변경: 공유 가사 직접 조회 (2026-09-24)
+
+이 절이 아래 최초 구축 기록보다 우선합니다. 0005_shared_lyrics를 운영에 적용했습니다.
+- loudasobi는 MONOASOBI `lyric_tracks`를 직접 읽습니다. 가사 복사·가사 편집 기능은 제공하지 않습니다.
+- `loudasobi_music_settings.sync_offset`(초, 기본 0)을 추가했습니다. 최종 sync = 공통 트랙 sync + 전용 sync_offset입니다. 양수는 가사를 늦게 표시합니다.
+- 콜 테이블 FK는 사본 트랙이 아닌 `musics.id`를 참조합니다. 공통 트랙 삭제 시에도 콜 문서는 보존되며, 콜 편집 단계에서 연결 유효성을 확인해야 합니다.
+- `loudasobi_lyric_tracks`는 보관용으로 남겼고 서비스에서 읽거나 쓰지 않습니다. 기존 원문·설정·콜 문서가 보존되었고 외래 키 검사도 통과했습니다.
+- 이번 적용 직전 백업: `.backups/loudasobi-foundation-1790258678471.json`.
+
+### 다음 배포 및 ID 보강
+
+MONOASOBI 줄 ID 보존/생성 코드가 준비되어 있습니다. **이 코드를 배포하고 열려 있는 가사 편집기를 새로고침한 뒤** 아래 ID 보강을 실행합니다. 기존 운영 저장기는 ID를 제거하므로 아직 운영 ID 보강은 하지 않았습니다.
+
+```sh
+node --env-file=.env scripts/backfillLyricIds.mjs
+node --env-file=.env scripts/backfillLyricIds.mjs --apply --confirm-mono-deployed
+```
+
+원문·시간·sync는 수정하지 않고 누락된 ID만 추가합니다. 실행 직전 가사 백업을 남기며 같은 작업을 반복해도 기존 ID를 교체하지 않습니다. 이후 일반 수정은 ID를 유지하고 타임라인 줄 분할은 새 줄에만 새 ID를 부여합니다. JSON 전체 교체 시 ID를 제거하면 새 줄로 취급됩니다.
+
+ID 보강 전에도 가사 조회와 싱크 조정은 가능합니다. 실제 콜 연결은 ID 보강 후 구현합니다. 부분 떼창은 lineId와 선택 원문을 함께 저장하고 원문 변경/줄 삭제 시 재확인 대상으로 처리해야 합니다. 이 유효성 UI는 아직 구현 전입니다.
+
+향후 스키마만 적용할 때는 `scripts/loudasobiFoundation.mjs --schema-only`로 사전 검증하고 승인 후 `--schema-only --apply`를 사용합니다. 과거 가사 복사 모드는 다시 사용하지 않습니다.
+
+## 아래는 최초 구축 당시 기록 (현재 동작 아님)
+
 ## 현재 상태
 
 - 스키마와 마이그레이션, MONOASOBI 논리 삭제 코드를 준비했습니다.

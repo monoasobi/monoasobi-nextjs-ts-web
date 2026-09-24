@@ -16,6 +16,7 @@ import type {
   NovelInput,
 } from "@/server/schemas/admin.schema";
 import { and, eq, isNull } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
 
 const now = () => new Date().toISOString();
 
@@ -102,7 +103,7 @@ export const deleteComic = async (id: number) => {
 };
 
 export const createLyricTrack = async (input: LyricTrackInput) => {
-  const [created] = await db.insert(lyricTracks).values(input).returning();
+  const [created] = await db.insert(lyricTracks).values({ ...input, lyricJson: input.lyricJson.map(line => ({ ...line, id: line.id ?? randomUUID() })) }).returning();
   return created;
 };
 
@@ -112,7 +113,7 @@ export const updateLyricTrack = async (
 ) => {
   const [updated] = await db
     .update(lyricTracks)
-    .set({ sync: input.sync, lyricJson: input.lyricJson, updatedAt: now() })
+    .set({ sync: input.sync, lyricJson: input.lyricJson.map(line => ({ ...line, id: line.id ?? randomUUID() })), updatedAt: now() })
     .where(eq(lyricTracks.musicId, musicId))
     .returning();
 
