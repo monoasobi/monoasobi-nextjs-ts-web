@@ -1,5 +1,20 @@
 # loudasobi 공용 DB 기반
 
+## 적용 완료: 사이드바 추천 목록 (2026-09-25)
+
+- `0007_loudasobi_sidebar.sql`은 `loudasobi_sidebar_settings` 테이블만 추가합니다. 단일 행(id=1)의 `layout_json`에 그룹 이름·순서·공개곡 배치를 저장합니다.
+- 공유 곡, 가사, 콜 및 곡 설정 행은 변경하지 않습니다. 저장 시 현재 공개곡 유효성과 동시 변경 리비전을 loudasobi 서버에서 검증합니다.
+- 운영 스냅샷의 로컬 복제본으로 마이그레이션·원본 행 보존·외래 키 검사를 통과했습니다. 사전 검증 백업: `.backups/loudasobi-foundation-1790318168538.json`.
+- 사용자 승인 후 `--schema-only --apply`로 운영 적용을 완료했습니다. 기존 모든 행 보존 및 외래 키 검사를 통과했으며 미적용 마이그레이션은 없습니다. 적용 직전 백업: `.backups/loudasobi-foundation-1790335070830.json`.
+- 추천 목록 행은 관리자에서 처음 저장할 때 생성합니다. 최초 저장 전에는 현재 공개곡을 기존 순서대로 표시하며, 임의의 그룹이나 순서를 운영 DB에 넣지 않았습니다.
+
+## 적용 완료: 곡 BPM (2026-09-25)
+
+- `0006_loudasobi_bpm.sql`은 `loudasobi_music_settings.bpm` nullable real 컬럼만 추가합니다. 기존 설정과 공유 곡·가사는 변경하지 않습니다.
+- loudasobi 관리자에서 20~400 BPM 또는 미지정으로 저장합니다. 새 8카운트 펄스 패턴의 기본값으로만 쓰며 기존 콜 패턴에는 소급하지 않습니다.
+- 사용자 승인 후 운영 DB 적용 완료. nullable real 컬럼을 추가했고 기존 모든 행 보존 및 외래 키 검사를 통과했습니다. 직전 백업: `.backups/loudasobi-foundation-1790316246452.json`.
+- loudasobi 새 코드 실행 전에 기존 절차대로 `node --env-file=.env scripts/loudasobiFoundation.mjs --schema-only`로 검증하고, 운영 적용 승인 후 같은 명령에 `--apply`를 붙입니다. MONOASOBI 앱 배포만으로 DB 컬럼이 생성되지는 않습니다.
+
 ## 최신 변경: 공유 가사 직접 조회 (2026-09-24)
 
 이 절이 아래 최초 구축 기록보다 우선합니다. 0005_shared_lyrics를 운영에 적용했습니다.
@@ -11,7 +26,7 @@
 
 ### 다음 배포 및 ID 보강
 
-MONOASOBI 줄 ID 보존/생성 코드가 준비되어 있습니다. **이 코드를 배포하고 열려 있는 가사 편집기를 새로고침한 뒤** 아래 ID 보강을 실행합니다. 기존 운영 저장기는 ID를 제거하므로 아직 운영 ID 보강은 하지 않았습니다.
+MONOASOBI 줄 ID 보존/생성 코드 배포를 사용자가 확인했으며, 2026-09-24 운영 가사 35곡·1,999줄의 ID 보강을 완료했습니다. 원문·타이밍·sync 보존, ID 중복/누락 없음, 외래 키 정상 및 재실행 시 추가 대상 0건을 확인했습니다. 직전 백업은 `.backups/shared-lyric-ids-1790259318792.json`입니다. 이전에 열어 둔 가사 편집기는 저장 전에 새로고침해야 합니다.
 
 ```sh
 node --env-file=.env scripts/backfillLyricIds.mjs

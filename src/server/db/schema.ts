@@ -110,10 +110,17 @@ export const lyricTracks = sqliteTable("lyric_tracks", {
 });
 
 // Shared database: schema and migrations are owned by MONOASOBI only.
+export const loudasobiSidebarSettings = sqliteTable("loudasobi_sidebar_settings", {
+  id: integer("id").primaryKey(),
+  layoutJson: text("layout_json", { mode: "json" }).notNull(),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+}, (table) => [check("loudasobi_sidebar_singleton", sql`${table.id} = 1`)]);
+
 export const loudasobiMusicSettings = sqliteTable("loudasobi_music_settings", {
   musicId: integer("music_id").primaryKey().references(() => musics.id),
   youtubeId: text("youtube_id"),
   fanLightColor: text("fan_light_color"),
+  bpm: real("bpm"),
   publish: integer("publish", { mode: "boolean" }).notNull().default(false),
   syncOffset: real("sync_offset").notNull().default(0),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
