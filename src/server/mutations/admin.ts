@@ -17,6 +17,8 @@ import type {
 } from "@/server/schemas/admin.schema";
 import { and, eq, isNull } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
+import { preserveEnglish, withoutEnglish } from "@/lib/lyricEnglish";
+import type { LyricLine } from "@appTypes/lyric";
 
 const now = () => new Date().toISOString();
 
@@ -103,7 +105,7 @@ export const deleteComic = async (id: number) => {
 };
 
 export const createLyricTrack = async (input: LyricTrackInput) => {
-  const [created] = await db.insert(lyricTracks).values({ ...input, lyricJson: input.lyricJson.map(line => ({ ...line, id: line.id ?? randomUUID() })) }).returning();
+  const [created] = await db.insert(lyricTracks).values({ ...input, lyricJson: input.lyricJson.map(line => ({ ...withoutEnglish(line), id: line.id ?? randomUUID() })) }).returning();
   return created;
 };
 
@@ -111,13 +113,16 @@ export const updateLyricTrack = async (
   musicId: number,
   input: LyricTrackInput,
 ) => {
-  const [updated] = await db
-    .update(lyricTracks)
-    .set({ sync: input.sync, lyricJson: input.lyricJson.map(line => ({ ...line, id: line.id ?? randomUUID() })), updatedAt: now() })
-    .where(eq(lyricTracks.musicId, musicId))
-    .returning();
-
-  return updated ?? null;
+  return db.transaction(async tx => {
+    const [current] = await tx.select().from(lyricTracks).where(eq(lyricTracks.musicId, musicId));
+    if (!current) return null;
+    const lines = preserveEnglish(input.lyricJson, current.lyricJson as LyricLine[])
+      .map(line => ({ ...line, id: line.id ?? randomUUID() }));
+    const [updated] = await tx.update(lyricTracks)
+      .set({ sync: input.sync, lyricJson: lines, updatedAt: now() })
+      .where(eq(lyricTracks.musicId, musicId)).returning();
+    return updated ? { ...updated, lyricJson: (updated.lyricJson as LyricLine[]).map(withoutEnglish) } : null;
+  });
 };
 
 export const deleteLyricTrack = async (musicId: number) => {

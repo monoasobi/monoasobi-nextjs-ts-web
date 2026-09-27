@@ -3,6 +3,7 @@ import type { LyricLine, LyricTrack } from "@appTypes/lyric";
 import { db } from "@/server/db";
 import { cacheLife, cacheTag } from "next/cache";
 import { PUBLIC_CATALOG_CACHE_TAG } from "./publicCatalog";
+import { withoutEnglish } from "@/lib/lyricEnglish";
 
 export const getLyricTrackByMusicId = async (
   musicId: number,
@@ -20,6 +21,6 @@ export const getLyricTrackByMusicId = async (
   return {
     id: track.musicId,
     sync: track.sync,
-    lyric: track.lyricJson as LyricLine[],
+    lyric: (track.lyricJson as LyricLine[]).map(withoutEnglish),
   };
 };

@@ -1,6 +1,7 @@
 import { activeMusicIds } from "./activeMusic";
 import { db } from "@/server/db";
 import type { LyricLine } from "@appTypes/lyric";
+import { withoutEnglish } from "@/lib/lyricEnglish";
 
 export const getAdminDashboard = async () => {
   const [musics, novels, comics, books, lyricTracks] = await Promise.all([
@@ -51,7 +52,7 @@ export const getAdminDashboard = async () => {
       musicId: track.musicId,
       sync: track.sync,
       lineCount: Array.isArray(track.lyricJson) ? track.lyricJson.length : 0,
-      lyricJson: track.lyricJson,
+      lyricJson: (track.lyricJson as LyricLine[]).map(withoutEnglish),
     })),
   };
 };
@@ -78,7 +79,7 @@ export const getAdminLyricTimeline = async (musicId: number) => {
       ? {
           musicId: music.lyricTrack.musicId,
           sync: music.lyricTrack.sync,
-          lyricJson: music.lyricTrack.lyricJson as LyricLine[],
+          lyricJson: (music.lyricTrack.lyricJson as LyricLine[]).map(withoutEnglish),
         }
       : null,
   };
