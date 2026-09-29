@@ -2,12 +2,13 @@
 
 import { CheckIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { Callout, Text } from "@radix-ui/themes";
-import type { FormEvent } from "react";
+import type { FormEvent, ReactNode } from "react";
 import styles from "../AdminPage.module.css";
 import { AdminEditorField } from "./AdminEditorField";
 import type { AdminMessage, EditorFieldConfig } from "./types";
 
 interface AdminEditorFormProps {
+  children?: ReactNode;
   formId: string;
   fields: EditorFieldConfig[];
   message: AdminMessage | null;
@@ -17,6 +18,7 @@ interface AdminEditorFormProps {
 }
 
 export const AdminEditorForm = ({
+  children,
   formId,
   fields,
   message,
@@ -44,6 +46,7 @@ export const AdminEditorForm = ({
         </div>
       </div>
     ))}
+    {children}
     {message && <AdminEditorMessage message={message} />}
   </form>
 );

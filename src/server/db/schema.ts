@@ -8,6 +8,7 @@ export const musics = sqliteTable("musics", {
   title: text("title").notNull(),
   specialPath: text("special_path"),
   youtubeId: text("youtube_id"),
+  albumArtKey: text("album_art_key"),
   deletedAt: text("deleted_at"),
   createdAt: text("created_at")
     .notNull()

@@ -1,5 +1,6 @@
 "use client";
 
+import { AlbumArtwork } from "@/components/common/AlbumArtwork";
 import { AdminSrtExport } from "./AdminSrtExport";
 import type { LyricLine } from "@appTypes/lyric";
 import type { AdminRole } from "@appTypes/admin";
@@ -24,7 +25,9 @@ import {
 } from "@radix-ui/themes";
 import Link from "next/link";
 import type { FormEvent } from "react";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { AlbumArtField } from "./AdminDocumentPanel/AlbumArtField";
+import { getAlbumArtSrc } from "@/lib/albumArt";
 import type { AdminDashboardData, SelectedNode } from "./AdminDashboard";
 import {
   AdminEditorForm,
@@ -44,7 +47,7 @@ interface AdminDocumentPanelProps {
   data: AdminDashboardData;
   role: AdminRole;
   selectedNode: SelectedNode;
-  onSaved: () => void;
+  onSaved: (musicId?: number) => void;
 }
 
 export const AdminDocumentPanel = ({
@@ -54,6 +57,10 @@ export const AdminDocumentPanel = ({
   onSaved,
 }: AdminDocumentPanelProps) => {
   const canManage = role === "admin";
+  const savedMusicId = useRef<number | null>(null);
+  const isMusic = selectedNode.type === "music" || selectedNode.type === "newMusic";
+  const editedMusic = selectedNode.type === "music"
+    ? data.musics.find((music) => music.id === selectedNode.id) : undefined;
   const selectedDocument = getSelectedDocument(data, selectedNode);
   const selectedLyric =
     selectedNode.type === "lyric"
@@ -80,6 +87,7 @@ export const AdminDocumentPanel = ({
   const handleCancel = () => {
     setMessage(null);
     setIsEditing(false);
+    if (savedMusicId.current !== null) onSaved(savedMusicId.current);
   };
 
   const handleSubmit = async (
@@ -87,7 +95,7 @@ export const AdminDocumentPanel = ({
     config: EditorConfig,
   ) => {
     event.preventDefault();
-    if (!canManage) return;
+    if (!canManage || isSaving) return;
 
     setIsSaving(true);
     setMessage(null);
@@ -106,30 +114,39 @@ export const AdminDocumentPanel = ({
       return;
     }
 
-    const response = await fetch(config.endpoint, {
-      method: config.method,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    setIsSaving(false);
-
-    if (!response.ok) {
-      setMessage({
-        tone: "error",
-        text: await getErrorMessage(response, "저장에 실패했습니다."),
+    try {
+      const endpoint = isMusic && savedMusicId.current !== null
+        ? `/api/admin/musics/${savedMusicId.current}` : config.endpoint;
+      const response = await fetch(endpoint, {
+        method: isMusic && savedMusicId.current !== null ? "PUT" : config.method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
-      return;
+      if (!response.ok) throw new Error(await getErrorMessage(response, "저장에 실패했습니다."));
+      if (isMusic) {
+        const result = await response.json();
+        savedMusicId.current = result.music.id;
+        const file = formData.get("albumArt");
+        if (file instanceof File && file.size > 0) {
+          try {
+            const upload = await fetch(`/api/admin/musics/${result.music.id}/album-art`, {
+              method: "PUT", body: file,
+              headers: { "Content-Type": file.type },
+            });
+            if (!upload.ok) throw new Error(await getErrorMessage(upload, "앨범아트 업로드에 실패했습니다."));
+          } catch (error) {
+            throw new Error(`곡 정보는 저장되었습니다. ${error instanceof Error ? error.message : "앨범아트 업로드에 실패했습니다."} 저장 버튼으로 다시 시도해주세요.`);
+          }
+        }
+      }
+      setMessage({ tone: "success", text: config.method === "POST" ? "생성했습니다." : "저장했습니다." });
+      setIsEditing(false);
+      onSaved(isMusic ? savedMusicId.current ?? undefined : undefined);
+    } catch (error) {
+      setMessage({ tone: "error", text: error instanceof Error ? error.message : "저장에 실패했습니다. 다시 시도해주세요." });
+    } finally {
+      setIsSaving(false);
     }
-
-    setMessage({
-      tone: "success",
-      text: config.method === "POST" ? "생성했습니다." : "저장했습니다.",
-    });
-    setIsEditing(false);
-    onSaved();
   };
 
   const handleDelete = async (config: EditorConfig) => {
@@ -267,9 +284,25 @@ export const AdminDocumentPanel = ({
                 [key]: value,
               }))
             }
-          />
+          >
+            {isMusic && <AlbumArtField disabled={isSaving} currentSrc={editedMusic ? getAlbumArtSrc(editedMusic) : undefined} />}
+          </AdminEditorForm>
         ) : (
           <div className={styles.documentBody}>
+            {editedMusic && (
+              <>
+                <Flex direction="column" gap="2" p="3">
+                  <Text size="2" color="gray">앨범아트</Text>
+                  <AlbumArtwork
+                    src={getAlbumArtSrc(editedMusic)}
+                    alt={`${editedMusic.title} 앨범아트`}
+                    size={120}
+                    fit="contain"
+                  />
+                </Flex>
+                <Separator size="4" />
+              </>
+            )}
             {selectedDocument.fields.map((field) => (
               <div className={styles.fieldRow} key={field.key}>
                 <Text className={styles.fieldKey} size="2">

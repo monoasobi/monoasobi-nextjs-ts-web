@@ -7,7 +7,8 @@ import { privateReaderAtom } from "@atoms/privateReader.atom";
 import { sidebarAtom, sidebarScrollTopAtom } from "@atoms/sidebar.atom";
 import { Badge, Flex, ScrollArea, Text } from "@radix-ui/themes";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import Image from "next/image";
+import { AlbumArtwork } from "@/components/common/AlbumArtwork";
+import { getAlbumArtSrc } from "@/lib/albumArt";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import type { MouseEventHandler } from "react";
@@ -158,12 +159,10 @@ const Item = ({ item, isActive }: ItemProps) => {
       data-active={isActive}
       data-tone={tone}
     >
-      <Image
-        src={`/images/albumart/${music.id}.webp`}
+      <AlbumArtwork
+        src={getAlbumArtSrc(music)}
         alt={music.title}
         className={styles.artwork}
-        width={72}
-        height={72}
       />
       <span className={styles.itemText}>
         <span className={styles.textRow}>

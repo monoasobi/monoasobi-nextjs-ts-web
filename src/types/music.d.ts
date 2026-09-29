@@ -5,4 +5,5 @@ export interface Music {
   title: string;
   specialPath?: string;
   youtubeId?: string;
+  albumArtKey?: string;
 }

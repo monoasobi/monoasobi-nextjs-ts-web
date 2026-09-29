@@ -2,6 +2,8 @@ import "server-only";
 
 import {
   GetObjectCommand,
+  PutObjectCommand,
+  DeleteObjectCommand,
   ListObjectsV2Command,
   S3Client,
   type GetObjectCommandOutput,
@@ -127,4 +129,17 @@ export const r2BodyToResponseBody = async (
   }
 
   return body as BodyInit;
+};
+
+export const putR2Object = async (key: string, body: Uint8Array, contentType: string) => {
+  const { bucketName } = getR2Config();
+  await getR2Client().send(new PutObjectCommand({
+    Bucket: bucketName, Key: key, Body: body, ContentType: contentType,
+    CacheControl: "public, max-age=31536000, immutable",
+  }));
+};
+
+export const deleteR2Object = async (key: string) => {
+  const { bucketName } = getR2Config();
+  await getR2Client().send(new DeleteObjectCommand({ Bucket: bucketName, Key: key }));
 };

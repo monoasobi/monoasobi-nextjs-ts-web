@@ -1,8 +1,11 @@
 "use client";
 
+import { AlbumArtwork } from "@/components/common/AlbumArtwork";
+import { getAlbumArtSrc } from "@/lib/albumArt";
 import type { AdminRole } from "@appTypes/admin";
 import {
   Badge,
+  Box,
   Button,
   Card,
   Flex,
@@ -187,6 +190,7 @@ export const AdminDashboard = ({ data, role }: AdminDashboardProps) => {
                     <div className={styles.treeDocument} key={music.id}>
                       <MusicTreeButton
                         musicId={music.id}
+                        artworkSrc={getAlbumArtSrc(music)}
                         label={music.title}
                         meta={`${music.korTitle} / ${music.enTitle}`}
                         isExpanded={isExpanded}
@@ -358,7 +362,10 @@ export const AdminDashboard = ({ data, role }: AdminDashboardProps) => {
             data={data}
             role={role}
             selectedNode={resolvedSelectedNode}
-            onSaved={() => router.refresh()}
+            onSaved={(musicId) => {
+              if (musicId !== undefined) setSelectedNode({ type: "music", id: musicId });
+              router.refresh();
+            }}
           />
         </Card>
       </section>
@@ -529,6 +536,7 @@ const TreeSection = ({
 
 const MusicTreeButton = ({
   musicId,
+  artworkSrc,
   label,
   meta,
   isExpanded,
@@ -537,6 +545,7 @@ const MusicTreeButton = ({
   onSelect,
 }: {
   musicId: number;
+  artworkSrc: string;
   label: string;
   meta: string;
   isExpanded: boolean;
@@ -556,19 +565,24 @@ const MusicTreeButton = ({
         ▸
       </span>
     </button>
-    <button
-      type="button"
-      className={styles.musicSelectButton}
-      onClick={onSelect}
-    >
-      <span className={styles.treeButtonContent}>
-        <Badge className={styles.treeButtonBadge} variant="outline">
-          MUSIC #{musicId}
-        </Badge>
-        <span className={styles.treeButtonLabel}>{label}</span>
-      </span>
-      <span className={styles.treeButtonMeta}>{meta}</span>
-    </button>
+    <Flex asChild align="center" gap="2" minWidth="0" p="2">
+      <button
+        type="button"
+        className={styles.musicSelectButton}
+        onClick={onSelect}
+      >
+        <Box flexShrink="0">
+          <AlbumArtwork src={artworkSrc} alt="" size={40} />
+        </Box>
+        <Flex direction="column" gap="1" minWidth="0" flexGrow="1">
+          <Flex align="center" gap="2" minWidth="0">
+            <Badge size="1" variant="outline">#{musicId}</Badge>
+            <Text size="2" weight="medium" truncate>{label}</Text>
+          </Flex>
+          <Text size="1" color="gray" truncate>{meta}</Text>
+        </Flex>
+      </button>
+    </Flex>
   </div>
 );
 

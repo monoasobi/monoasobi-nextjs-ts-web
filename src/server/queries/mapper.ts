@@ -14,6 +14,7 @@ export const toMusic = (music: MusicRow): Music => ({
   title: music.title,
   specialPath: music.specialPath ?? undefined,
   youtubeId: music.youtubeId ?? undefined,
+  albumArtKey: music.albumArtKey ?? undefined,
 });
 
 export const toNovel = (novel: NovelRow): Novel => {
