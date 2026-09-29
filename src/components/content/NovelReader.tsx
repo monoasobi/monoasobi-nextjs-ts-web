@@ -19,11 +19,17 @@ export const NovelReader = ({ id }: NovelReaderProps) => {
 
   useEffect(() => {
     const fetchNovel = async (novelId: number | string) => {
+      const isDev = process.env.NODE_ENV === "development";
       try {
         setIsLoading(true);
         setIsError(false);
 
-        const res = await fetch(`/api/content/novels/${novelId}`);
+        // * 개발 + 소설 검토를 위한 로컬 파일 경로 설정
+        let url = "";
+        if (isDev) {
+          url = `/novel/${novelId}.md`;
+        }
+        const res = await fetch(url || `/api/content/novels/${novelId}`);
 
         if (!res.ok) throw new Error("Failed to fetch novel");
         setMarkdown(await res.text());
