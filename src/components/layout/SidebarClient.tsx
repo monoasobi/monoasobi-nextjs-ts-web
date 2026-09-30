@@ -1,6 +1,5 @@
 "use client";
 
-import { Loading } from "@/components/feedback/Loading";
 import { useHydrated } from "@/hooks/useHydrated";
 import type { Music } from "@appTypes/music";
 import type { Novel } from "@appTypes/novel";
@@ -25,7 +24,6 @@ export interface SidebarItem {
 
 interface SidebarClientProps {
   items: SidebarItem[];
-  isLoading?: boolean;
 }
 
 interface ItemProps {
@@ -33,7 +31,7 @@ interface ItemProps {
   isActive: boolean;
 }
 
-export const SidebarClient = ({ items, isLoading = false }: SidebarClientProps) => {
+export const SidebarClient = ({ items }: SidebarClientProps) => {
   const [isSidebar, setIsSidebar] = useAtom(sidebarAtom);
   const isHydrated = useHydrated();
 
@@ -100,7 +98,6 @@ export const SidebarClient = ({ items, isLoading = false }: SidebarClientProps) 
           scrollbars="vertical"
           className={styles.scrollArea}
         >
-          {isLoading && <Loading label="목록을 불러오는 중입니다." />}
           <Flex direction="column" gap="1">
             {items.map((item) => (
               <Item

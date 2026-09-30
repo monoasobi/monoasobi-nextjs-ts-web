@@ -1,10 +1,11 @@
 import { getSidebarItems } from "@/server/queries/sidebar";
 import { Suspense } from "react";
 import { SidebarClient } from "./SidebarClient";
+import { SidebarLoading } from "./Sidebar/SidebarLoading";
 
 export const Sidebar = () => {
   return (
-    <Suspense fallback={<SidebarClient items={[]} isLoading />}>
+    <Suspense fallback={<SidebarLoading />}>
       <SidebarContent />
     </Suspense>
   );
