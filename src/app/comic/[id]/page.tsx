@@ -1,3 +1,4 @@
+import { Loading } from "@/components/feedback/Loading";
 import { getLyricTrackByMusicId } from "@/server/queries/lyric";
 import {
   getComicStaticParams,
@@ -51,7 +52,7 @@ export default async function ComicPage({ params }: ComicPageProps) {
   const lyricTrack = await getLyricTrackByMusicId(data.music.id);
 
   return (
-    <Suspense>
+    <Suspense fallback={<Loading />}>
       <ContentsContainer
         music={data.music}
         lyricTrack={lyricTrack}

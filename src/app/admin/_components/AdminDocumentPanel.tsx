@@ -19,6 +19,7 @@ import {
   Heading,
   IconButton,
   ScrollArea,
+  Spinner,
   Separator,
   Text,
   Tooltip,
@@ -47,6 +48,7 @@ interface AdminDocumentPanelProps {
   data: AdminDashboardData;
   role: AdminRole;
   selectedNode: SelectedNode;
+  isRefreshing: boolean;
   onSaved: (musicId?: number) => void;
 }
 
@@ -55,6 +57,7 @@ export const AdminDocumentPanel = ({
   role,
   selectedNode,
   onSaved,
+  isRefreshing,
 }: AdminDocumentPanelProps) => {
   const canManage = role === "admin";
   const savedMusicId = useRef<number | null>(null);
@@ -75,6 +78,8 @@ export const AdminDocumentPanel = ({
     Boolean(isNewDocument && canManage),
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const isBusy = isSaving || isDeleting || isRefreshing;
   const [message, setMessage] = useState<AdminMessage | null>(null);
   const [visibilityFlags, setVisibilityFlags] = useState<
     Record<string, boolean>
@@ -95,7 +100,7 @@ export const AdminDocumentPanel = ({
     config: EditorConfig,
   ) => {
     event.preventDefault();
-    if (!canManage || isSaving) return;
+    if (!canManage || isBusy) return;
 
     setIsSaving(true);
     setMessage(null);
@@ -150,24 +155,19 @@ export const AdminDocumentPanel = ({
   };
 
   const handleDelete = async (config: EditorConfig) => {
-    if (!canManage || !config.deleteEndpoint) return;
-
-    setIsSaving(true);
+    if (!canManage || isBusy || !config.deleteEndpoint) return;
+    setIsDeleting(true);
     setMessage(null);
-
-    const response = await fetch(config.deleteEndpoint, { method: "DELETE" });
-    setIsSaving(false);
-
-    if (!response.ok) {
-      setMessage({
-        tone: "error",
-        text: await getErrorMessage(response, "삭제에 실패했습니다."),
-      });
-      return;
+    try {
+      const response = await fetch(config.deleteEndpoint, { method: "DELETE" });
+      if (!response.ok) throw new Error(await getErrorMessage(response, "삭제에 실패했습니다."));
+      setMessage({ tone: "success", text: "삭제했습니다." });
+      onSaved();
+    } catch (error) {
+      setMessage({ tone: "error", text: error instanceof Error ? error.message : "삭제에 실패했습니다. 다시 시도해 주세요." });
+    } finally {
+      setIsDeleting(false);
     }
-
-    setMessage({ tone: "success", text: "삭제했습니다." });
-    onSaved();
   };
 
   const visibleFields =
@@ -186,7 +186,7 @@ export const AdminDocumentPanel = ({
             <Heading size="4">{selectedDocument.title}</Heading>
             {canManage && config && isEditing && config.deleteEndpoint && (
               <DeleteDialog
-                disabled={isSaving}
+                disabled={isBusy}
                 title={selectedDocument.title}
                 description={config.deleteDescription}
                 onDelete={() => handleDelete(config)}
@@ -213,9 +213,10 @@ export const AdminDocumentPanel = ({
                 <Tooltip content={config.submitLabel}>
                   <IconButton
                     type="submit"
+                    loading={isSaving}
                     form={formId}
                     size="1"
-                    disabled={isSaving}
+                    disabled={isBusy}
                     aria-label={config.submitLabel}
                   >
                     <CheckIcon width="16" height="16" />
@@ -227,7 +228,7 @@ export const AdminDocumentPanel = ({
                     size="1"
                     variant="soft"
                     color="gray"
-                    disabled={isSaving}
+                    disabled={isBusy}
                     aria-label="취소"
                     onClick={handleCancel}
                   >
@@ -245,6 +246,7 @@ export const AdminDocumentPanel = ({
                   size="1"
                   variant="soft"
                   aria-label={isNewDocument ? "작성" : "수정"}
+                  disabled={isBusy}
                   onClick={() => setIsEditing(true)}
                 >
                   <PencilSquareIcon width="16" height="16" />
@@ -254,6 +256,13 @@ export const AdminDocumentPanel = ({
           )}
         </Flex>
       </Flex>
+
+      {isBusy && (
+        <Flex role="status" align="center" gap="2" px="3" py="2">
+          <Spinner size="1" />
+          <Text size="2" color="gray">{isDeleting ? "삭제 중입니다." : isSaving ? "저장 중입니다." : "최신 데이터를 불러오는 중입니다."}</Text>
+        </Flex>
+      )}
 
       {selectedLyric &&
         selectedMusic &&
@@ -285,7 +294,7 @@ export const AdminDocumentPanel = ({
               }))
             }
           >
-            {isMusic && <AlbumArtField disabled={isSaving} currentSrc={editedMusic ? getAlbumArtSrc(editedMusic) : undefined} />}
+            {isMusic && <AlbumArtField disabled={isBusy} currentSrc={editedMusic ? getAlbumArtSrc(editedMusic) : undefined} />}
           </AdminEditorForm>
         ) : (
           <div className={styles.documentBody}>

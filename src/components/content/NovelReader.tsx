@@ -13,11 +13,12 @@ interface NovelReaderProps {
 
 export const NovelReader = ({ id }: NovelReaderProps) => {
   const [markdown, setMarkdown] = useState<string | undefined>("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const novelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    let ignore = false;
     const fetchNovel = async (novelId: number | string) => {
       const isDev = process.env.NODE_ENV === "development";
       try {
@@ -32,16 +33,18 @@ export const NovelReader = ({ id }: NovelReaderProps) => {
         const res = await fetch(url || `/api/content/novels/${novelId}`);
 
         if (!res.ok) throw new Error("Failed to fetch novel");
-        setMarkdown(await res.text());
+        const text = await res.text();
+        if (!ignore) setMarkdown(text);
       } catch (error) {
         console.error(error);
-        setIsError(true);
+        if (!ignore) setIsError(true);
       } finally {
-        setIsLoading(false);
+        if (!ignore) setIsLoading(false);
       }
     };
 
-    fetchNovel(id);
+    void fetchNovel(id);
+    return () => { ignore = true; };
   }, [id]);
 
   useEffect(() => {

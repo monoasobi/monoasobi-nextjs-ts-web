@@ -15,7 +15,7 @@ import {
 } from "@radix-ui/themes";
 import { useRouter } from "next/navigation";
 import type { CSSProperties, UIEvent } from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { AdminDocumentPanel } from "./AdminDocumentPanel";
 import styles from "./AdminPage.module.css";
 
@@ -50,6 +50,10 @@ const ADMIN_DASHBOARD_STATE_KEY = "monoasobi-admin-dashboard-state";
 
 export const AdminDashboard = ({ data, role }: AdminDashboardProps) => {
   const router = useRouter();
+  const [isRefreshing, startTransition] = useTransition();
+  const [isLoggingOutTransition, startLogoutTransition] = useTransition();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [logoutError, setLogoutError] = useState("");
   const canManage = role === "admin";
   const treeScrollRef = useRef<HTMLDivElement>(null);
   const [initialState] = useState(() =>
@@ -111,8 +115,18 @@ export const AdminDashboard = ({ data, role }: AdminDashboardProps) => {
   }, [initialState.scrollTop]);
 
   const handleLogout = async () => {
-    await fetch("/api/admin/auth/logout", { method: "POST" });
-    router.refresh();
+    if (isLoggingOut || isLoggingOutTransition || isRefreshing) return;
+    setIsLoggingOut(true);
+    setLogoutError("");
+    try {
+      const response = await fetch("/api/admin/auth/logout", { method: "POST" });
+      if (!response.ok) throw new Error();
+      startLogoutTransition(() => router.refresh());
+    } catch {
+      setLogoutError("로그아웃에 실패했습니다. 다시 시도해 주세요.");
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   const toggleMusic = (musicId: number) => {
@@ -148,13 +162,16 @@ export const AdminDashboard = ({ data, role }: AdminDashboardProps) => {
           type="button"
           variant="soft"
           color="gray"
+          loading={isLoggingOut || isLoggingOutTransition}
+          disabled={isRefreshing}
           onClick={handleLogout}
         >
           로그아웃
         </Button>
       </Flex>
 
-      <section className={styles.console}>
+      {logoutError && <Text role="alert" color="red" size="2">{logoutError}</Text>}
+      <section className={styles.console} aria-busy={isRefreshing}>
         <Card className={styles.consoleSidebar}>
           <ScrollArea
             ref={treeScrollRef}
@@ -361,10 +378,13 @@ export const AdminDashboard = ({ data, role }: AdminDashboardProps) => {
             key={getSelectedNodeKey(resolvedSelectedNode)}
             data={data}
             role={role}
+            isRefreshing={isRefreshing}
             selectedNode={resolvedSelectedNode}
             onSaved={(musicId) => {
-              if (musicId !== undefined) setSelectedNode({ type: "music", id: musicId });
-              router.refresh();
+              startTransition(() => {
+                if (musicId !== undefined) setSelectedNode({ type: "music", id: musicId });
+                router.refresh();
+              });
             }}
           />
         </Card>

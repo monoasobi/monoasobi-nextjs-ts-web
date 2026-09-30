@@ -16,7 +16,7 @@ interface ComicReaderProps {
 export const ComicReader = ({ id }: ComicReaderProps) => {
   const comicRef = useRef<HTMLDivElement>(null);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
 
   useEffect(() => {

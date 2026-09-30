@@ -1,9 +1,7 @@
 "use client";
 
 import { privateReaderAtom } from "@atoms/privateReader.atom";
-import { Loading } from "@components/feedback/Loading";
 import {
-  Box,
   Button,
   Card,
   Flex,
@@ -14,18 +12,23 @@ import {
 } from "@radix-ui/themes";
 import { useAtom } from "jotai";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useState, useTransition, type FormEvent } from "react";
 import styles from "./PrivateReaderLogin.module.css";
 
 export const PrivateReaderLogin = () => {
+  const [isNavigating, startTransition] = useTransition();
+  const [error, setError] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [hasPrivateReaderAccess, setHasPrivateReaderAccess] =
     useAtom(privateReaderAtom);
   const router = useRouter();
+  const isBusy = isLoading || isNavigating;
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isBusy) return;
+    setError("");
 
     try {
       setIsLoading(true);
@@ -37,28 +40,35 @@ export const PrivateReaderLogin = () => {
 
       if (response.ok) {
         setHasPrivateReaderAccess(true);
-        router.push("/");
-        router.refresh();
+        startTransition(() => {
+          router.push("/");
+          router.refresh();
+        });
         return;
       }
 
       setHasPrivateReaderAccess(false);
-      alert("비밀번호가 틀렸습니다.");
+      setError("비밀번호가 틀렸습니다.");
     } catch (error) {
       console.error(error);
       setHasPrivateReaderAccess(false);
-      alert("제한 콘텐츠 열람 인증 오류입니다.");
+      setError("제한 콘텐츠 열람 인증 오류입니다. 다시 시도해 주세요.");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleLogout = async () => {
+    if (isBusy) return;
+    setError("");
     try {
       setIsLoading(true);
-      await fetch("/api/private-reader/auth/logout", { method: "POST" });
+      const response = await fetch("/api/private-reader/auth/logout", { method: "POST" });
+      if (!response.ok) throw new Error();
       setHasPrivateReaderAccess(false);
-      router.refresh();
+      startTransition(() => router.refresh());
+    } catch {
+      setError("권한 비활성화에 실패했습니다. 다시 시도해 주세요.");
     } finally {
       setIsLoading(false);
     }
@@ -81,7 +91,7 @@ export const PrivateReaderLogin = () => {
                 <Text size="2" color="gray">
                   현재 콘텐츠 열람 권한이 활성화되어 있습니다.
                 </Text>
-                <Button type="button" variant="outline" onClick={handleLogout}>
+                <Button loading={isBusy} type="button" variant="outline" onClick={handleLogout}>
                   권한 비활성화
                 </Button>
               </Flex>
@@ -93,6 +103,7 @@ export const PrivateReaderLogin = () => {
                       비밀번호
                     </Text>
                     <TextField.Root
+                      disabled={isBusy}
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
                       type="password"
@@ -100,16 +111,12 @@ export const PrivateReaderLogin = () => {
                       autoComplete="current-password"
                     />
                   </label>
-                  <Button type="submit">확인</Button>
+                  <Button type="submit" loading={isBusy} disabled={!password}>확인</Button>
                 </Flex>
               </form>
             )}
           </Flex>
-          {isLoading && (
-            <Box className={styles.loadingOverlay}>
-              <Loading />
-            </Box>
-          )}
+          {error && <Text as="p" role="alert" size="2" color="red" mt="3">{error}</Text>}
         </Card>
       </Flex>
     </ScrollArea>

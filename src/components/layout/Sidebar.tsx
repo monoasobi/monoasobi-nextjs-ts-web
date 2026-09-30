@@ -4,7 +4,7 @@ import { SidebarClient } from "./SidebarClient";
 
 export const Sidebar = () => {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<SidebarClient items={[]} isLoading />}>
       <SidebarContent />
     </Suspense>
   );

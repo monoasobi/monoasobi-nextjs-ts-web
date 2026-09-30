@@ -10,6 +10,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useTransition,
   type MouseEvent as ReactMouseEvent,
 } from "react";
 import { TimelineCanvas } from "./LyricTimelineEditor/TimelineCanvas";
@@ -45,6 +46,7 @@ export const LyricTimelineEditor = ({
   role,
 }: LyricTimelineEditorProps) => {
   const router = useRouter();
+  const [isRefreshing, startTransition] = useTransition();
   const canManage = role === "admin";
   const timelineRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -189,7 +191,7 @@ export const LyricTimelineEditor = ({
   };
 
   const save = async () => {
-    if (!canManage) return;
+    if (!canManage || isSaving || isRefreshing) return;
 
     setIsSaving(true);
     setMessage(null);
@@ -200,30 +202,35 @@ export const LyricTimelineEditor = ({
       lyricJson: getNormalizedLyrics(draftLyrics),
     };
 
-    const response = await fetch(
-      `/api/admin/lyric-tracks/${lyricTrack.musicId}`,
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      },
-    );
+    try {
+      const response = await fetch(
+        `/api/admin/lyric-tracks/${lyricTrack.musicId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
+      );
 
-    setIsSaving(false);
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => null);
-      setMessage({
-        tone: "error",
-        text: error?.error ?? "저장에 실패했습니다.",
-      });
-      return;
+      if (!response.ok) {
+        const error = await response.json().catch(() => null);
+        setMessage({
+          tone: "error",
+          text: error?.error ?? "저장에 실패했습니다.",
+        });
+        return;
+      }
+
+      const result = await response.json();
+      setDraftLyrics(getNormalizedLyrics(result.lyricTrack.lyricJson));
+      setMessage({ tone: "success", text: "저장했습니다." });
+      startTransition(() => router.refresh());
+    } catch {
+      setMessage({ tone: "error", text: "저장에 실패했습니다. 연결을 확인하고 다시 시도해 주세요." });
+    } finally {
+      setIsSaving(false);
     }
-
-    const result = await response.json();
-    setDraftLyrics(getNormalizedLyrics(result.lyricTrack.lyricJson));
-    setMessage({ tone: "success", text: "저장했습니다." });
-    router.refresh();
   };
 
   return (
@@ -242,7 +249,7 @@ export const LyricTimelineEditor = ({
           player={player}
           dirty={dirty}
           canManage={canManage}
-          isSaving={isSaving}
+          isSaving={isSaving || isRefreshing}
           message={message}
           onSave={save}
           onReset={() => {

@@ -1,13 +1,10 @@
 "use client";
 
-import { Flex } from "@radix-ui/themes";
-import { OrbitProgress } from "react-loading-indicators";
-import styles from "./Loading.module.css";
+import { Flex, Spinner, Text } from "@radix-ui/themes";
 
-export const Loading = () => {
-  return (
-    <Flex className={styles.container} justify="center" align="center">
-      <OrbitProgress color="#e3004e" size="large" />
-    </Flex>
-  );
-};
+export const Loading = ({ label = "불러오는 중입니다." }: { label?: string }) => (
+  <Flex width="100%" minHeight="160px" p="4" gap="3" direction="column" justify="center" align="center" role="status" aria-live="polite">
+    <Spinner size="3" />
+    <Text size="2" color="gray">{label}</Text>
+  </Flex>
+);

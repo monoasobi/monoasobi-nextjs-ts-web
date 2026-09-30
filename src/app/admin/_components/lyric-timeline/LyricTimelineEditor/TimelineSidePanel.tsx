@@ -70,6 +70,7 @@ export const TimelineSidePanel = ({
           <Button
             type="button"
             size="1"
+            loading={isSaving}
             disabled={!dirty || isSaving}
             onClick={onSave}
           >

@@ -1,3 +1,4 @@
+import { Loading } from "@/components/feedback/Loading";
 import { HeartBeat } from "@components/custom/HeartBeat";
 import { ContentsContainer } from "@components/content/ContentsContainer";
 import { getLyricTrackByMusicId } from "@/server/queries/lyric";
@@ -27,7 +28,7 @@ export default async function HeartBeatPage() {
   const lyricTrack = await getLyricTrackByMusicId(data.music.id);
 
   return (
-    <Suspense>
+    <Suspense fallback={<Loading />}>
       <ContentsContainer
         music={data.music}
         lyricTrack={lyricTrack}

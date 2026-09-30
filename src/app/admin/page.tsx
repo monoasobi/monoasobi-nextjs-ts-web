@@ -1,3 +1,4 @@
+import { Loading } from "@/components/feedback/Loading";
 import { ADMIN_COOKIE_NAME, verifyAdminSession } from "@/server/auth/admin";
 import { getAdminDashboard } from "@/server/queries/admin";
 import { cookies } from "next/headers";
@@ -8,7 +9,7 @@ import { Suspense } from "react";
 
 export default function AdminPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<Loading />}>
       <AdminPageContent />
     </Suspense>
   );

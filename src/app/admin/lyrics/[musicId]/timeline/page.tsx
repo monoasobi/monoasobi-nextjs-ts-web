@@ -1,3 +1,4 @@
+import { Loading } from "@/components/feedback/Loading";
 import { ADMIN_COOKIE_NAME, verifyAdminSession } from "@/server/auth/admin";
 import { getAdminLyricTimeline } from "@/server/queries/admin";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
@@ -18,7 +19,7 @@ export default function AdminLyricTimelinePage(
   props: AdminLyricTimelinePageProps,
 ) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<Loading />}>
       <AdminLyricTimelinePageContent {...props} />
     </Suspense>
   );
